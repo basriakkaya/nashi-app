@@ -298,7 +298,7 @@ private struct AboutSettingsView:View {
             Text("KAGE").font(.system(size:34,weight:.bold,design:.monospaced)).tracking(6)
             LText("Your files. Your control.").font(.headline)
             Text("Version \(version)").font(.system(size:12,design:.monospaced)).foregroundStyle(.secondary)
-            LText("A personal macOS workspace for file conversion, editing and local security inspection.").multilineTextAlignment(.center).foregroundStyle(.secondary)
+            LText("A personal macOS workspace for file conversion and editing.").multilineTextAlignment(.center).foregroundStyle(.secondary)
             Divider().frame(width:180)
             LText("Independently customized from Nashi. Original copyright and third-party licenses are preserved.").font(.caption).multilineTextAlignment(.center).foregroundStyle(.secondary)
             HStack {

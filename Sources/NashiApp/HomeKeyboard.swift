@@ -6,17 +6,15 @@ import AppKit
         let editing=(window.firstResponder as? NSTextView)?.isEditable == true
         if flags == .command {
             switch event.charactersIgnoringModifiers {
-            case "1":securityVisible=false;libraryVisible=false;return true
-            case "2":securityVisible=false;libraryVisible=true;return true
-            case "3":libraryVisible=false;securityVisible=true;return true
-            case "f":securityVisible=false;libraryVisible=true;libraryFocusRequest+=1;return true
+            case "1":libraryVisible=false;return true
+            case "2":libraryVisible=true;return true
+            case "f":libraryVisible=true;libraryFocusRequest+=1;return true
             case "o":if !working {onChooseFiles?()};return true
             case "v":if !editing {pasteContent(pasteboard);return true}
             default:break
             }
-            if !securityVisible,[49,36,76].contains(event.keyCode),!editing,!working,!inputs.isEmpty {onOpenWheel?();return true}
+            if [49,36,76].contains(event.keyCode),!editing,!working,!inputs.isEmpty {onOpenWheel?();return true}
         }
-        if securityVisible { return false }
         if !libraryVisible,flags.isEmpty,[36,76].contains(event.keyCode),!editing,!(window.firstResponder is NSButton),!working,!inputs.isEmpty {onOpenWheel?();return true}
         guard libraryVisible,flags.isEmpty else{return false}
         // Down from the Library search transfers focus to the matching results.

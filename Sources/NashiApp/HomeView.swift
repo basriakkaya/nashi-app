@@ -12,11 +12,6 @@ struct HomeView:View {
     @AppStorage("actionsKey") private var actionsKey="control"
     @FocusState private var librarySearchFocused:Bool
     @State private var handledLibraryFocusRequest=0
-    @StateObject private var security: SecurityInspectionModel
-    init(state: AppState, updater: AppUpdater, securityModel: SecurityInspectionModel? = nil) {
-        self.state = state; self.updater = updater
-        _security = StateObject(wrappedValue: securityModel ?? SecurityInspectionModel())
-    }
     @State private var targeted=false
     @State private var historySearch=""
     @State private var allHistory=false
@@ -36,21 +31,18 @@ struct HomeView:View {
                     HStack(spacing:7) {
                         Circle().fill(Color.nashi).frame(width:5,height:5)
                         Text("KAGE / ").foregroundStyle(.secondary)
-                        LText(state.securityVisible ? "SECURITY":state.libraryVisible ? "LIBRARY":"WORKSPACE")
+                        LText(state.libraryVisible ? "LIBRARY":"WORKSPACE")
                     }.font(.system(size:10,weight:.medium,design:.monospaced)).tracking(0.7)
                     Spacer()
                     Button { state.onChooseFiles?() } label:{Label("Choose files",systemImage:"plus")}.buttonStyle(NashiButtonStyle(.secondary,compact:true)).disabled(state.working)
                     Button { state.pasteContent() } label:{Image(systemName:"doc.on.clipboard")}.buttonStyle(NashiButtonStyle(.quiet,compact:true)).help("Paste · ⌘V").disabled(state.working)
                 }.padding(.horizontal,28).frame(height:70)
                 Divider()
-                if state.securityVisible { SecurityCenterView(state:state,model:security) }
-                else if state.libraryVisible { libraryPage }
+                if state.libraryVisible { libraryPage }
                 else { workspacePage }
             }.frame(maxWidth:.infinity,maxHeight:.infinity)
         }.frame(minWidth:960,minHeight:680).background(NashiPalette.canvas).tint(.nashi)
             .nashiAnimation(value:state.inputs.isEmpty).nashiAnimation(value:state.working)
-            .onChange(of:state.libraryVisible) { if $0 { state.securityVisible=false } }
-            .onChange(of:state.securityVisible) { if $0 { state.libraryVisible=false } }
             .onChange(of:state.inputs) { _ in if !state.working { state.outputs=[];state.error=nil } }
             .onReceive(NotificationCenter.default.publisher(for:.toolSetupChanged)) { _ in toolsReady=ExternalToolSetup.status.ready }
     }
@@ -65,9 +57,8 @@ struct HomeView:View {
             }.padding(.top,38).padding(.bottom,6)
             VStack(alignment:.leading,spacing:8) {
                 LText("CONTROL ROOM").font(.system(size:9,weight:.medium,design:.monospaced)).tracking(1.2).foregroundStyle(.tertiary).padding(.horizontal,10).padding(.bottom,5)
-                navItem("Workspace","square.grid.2x2","⌘1",active:!state.libraryVisible && !state.securityVisible) { state.securityVisible=false;state.libraryVisible=false }
-                navItem("Security Center","shield.lefthalf.filled","⌘3",active:state.securityVisible) { state.libraryVisible=false;state.securityVisible=true }
-                navItem("Library","clock.arrow.circlepath","⌘2",active:state.libraryVisible) { state.securityVisible=false;state.libraryVisible=true }
+                navItem("Workspace","square.grid.2x2","⌘1",active:!state.libraryVisible) { state.libraryVisible=false }
+                navItem("Library","clock.arrow.circlepath","⌘2",active:state.libraryVisible) { state.libraryVisible=true }
             }
             Divider()
             VStack(alignment:.leading,spacing:8) {
@@ -79,7 +70,7 @@ struct HomeView:View {
             }
             Spacer()
             VStack(alignment:.leading,spacing:10) {
-                HStack(spacing:7) { Image(systemName:"lock.shield").foregroundStyle(Color.nashi);LText("Local file processing").font(.system(size:10)) }
+                HStack(spacing:7) { Image(systemName:"desktopcomputer").foregroundStyle(Color.nashi);LText("Local file processing").font(.system(size:10)) }
                 Text("KAGE / macOS").font(.system(size:9,design:.monospaced)).tracking(0.5).foregroundStyle(.tertiary)
             }.padding(.horizontal,10).padding(.bottom,22)
         }.padding(.horizontal,16).frame(width:208).background(NashiPalette.inset)
@@ -103,23 +94,23 @@ struct HomeView:View {
                 VStack(alignment:.leading,spacing:9) {
                     LText("YOUR MAC. YOUR CONTROL.").font(.system(size:10,weight:.medium,design:.monospaced)).tracking(1.8).foregroundStyle(NashiPalette.forest)
                     LText(state.inputs.isEmpty ? "Every file. A new possibility.":"Choose your next move.").font(.system(size:32,weight:.semibold)).tracking(-1.0)
-                    LText("Convert, edit and inspect your files from one private workspace.").font(.system(size:13)).foregroundStyle(.secondary)
+                    LText("Convert, edit and organize your files in one workspace.").font(.system(size:13)).foregroundStyle(.secondary)
                 }.padding(.top,4)
                 HStack(spacing:12) {
                     workspaceMetric(String(format:"%02d",FeatureCatalog.conversionMatrix.count),"INPUT FORMATS","doc.on.doc")
                     workspaceMetric(String(format:"%02d",FeatureCatalog.toolNames.count),"FILE TOOLS","slider.horizontal.3")
-                    workspaceMetric("SHA-256","FILE FINGERPRINTS","number")
+                    workspaceMetric("LOCAL","PROCESSING","desktopcomputer")
                 }
                 dropZone
                 if !state.inputs.isEmpty { selectionActions }
                 HStack(spacing:12) {
-                    Button { state.securityVisible=true } label:{
+                    Button { if state.inputs.isEmpty { state.onChooseFiles?() } else { state.onOpenWheel?() } } label:{
                         HStack(alignment:.top,spacing:13) {
-                            Image(systemName:"shield.lefthalf.filled").font(.system(size:24,weight:.light)).foregroundStyle(Color.nashi)
-                            VStack(alignment:.leading,spacing:6) { LText("Inspect before you trust.").font(.system(size:14,weight:.semibold));LText("File headers, fingerprints and signals worth reviewing.").font(.system(size:11)).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true) }
+                            Image(systemName:"slider.horizontal.3").font(.system(size:24,weight:.light)).foregroundStyle(Color.nashi)
+                            VStack(alignment:.leading,spacing:6) { LText("Your files. Your next move.").font(.system(size:14,weight:.semibold));LText("Choose a file to open its conversion and editing tools.").font(.system(size:11)).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true) }
                             Spacer(minLength:0);Image(systemName:"arrow.up.right").font(.system(size:11)).foregroundStyle(.secondary)
                         }.padding(19).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topLeading).nashiCard()
-                    }.buttonStyle(.plain)
+                    }.buttonStyle(.plain).disabled(state.working)
                     Button { state.onWebDownload?(WebLinkPayload.clipboardLink(),.video) } label:{
                         HStack(alignment:.top,spacing:13) {
                             Image(systemName:"arrow.down.to.line").font(.system(size:24,weight:.light)).foregroundStyle(NashiPalette.forest)
@@ -137,7 +128,7 @@ struct HomeView:View {
     private func workspaceMetric(_ value:String,_ title:String,_ symbol:String)->some View {
         HStack(spacing:13) {
             Image(systemName:symbol).font(.system(size:18,weight:.light)).foregroundStyle(NashiPalette.forest)
-            VStack(alignment:.leading,spacing:5) { Text(value).font(.system(size:19,weight:.medium,design:.monospaced));LText(title).font(.system(size:8,weight:.medium,design:.monospaced)).tracking(0.8).foregroundStyle(.secondary) }
+            VStack(alignment:.leading,spacing:5) { LText(value).font(.system(size:19,weight:.medium,design:.monospaced));LText(title).font(.system(size:8,weight:.medium,design:.monospaced)).tracking(0.8).foregroundStyle(.secondary) }
             Spacer(minLength:0)
         }.padding(15).frame(maxWidth:.infinity,alignment:.leading).nashiCard(radius:10)
     }

@@ -7,6 +7,7 @@ permissions:
   contents: read
 jobs:
   update:
+    if: github.repository == 'orkunisitmak/nashi-app'
     runs-on: windows-2025
     timeout-minutes: 25
     steps:

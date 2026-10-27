@@ -11,7 +11,7 @@ import ApplicationServices
 @main
 enum NashiApplication {
     @MainActor static func main() {
-        if CommandLine.arguments.count>1,["convert","tool","inspect","security","catalog","dependencies"].contains(CommandLine.arguments[1]) { exit(NashiCommandLine.run()) }
+        if CommandLine.arguments.count>1,!CommandLine.arguments[1].hasPrefix("-") { exit(NashiCommandLine.run()) }
         let app=NSApplication.shared
         if let index=CommandLine.arguments.firstIndex(of:"--kage-smoke"),CommandLine.arguments.count>index+1 {
             let runner=KageSmoke(output:URL(fileURLWithPath:CommandLine.arguments[index+1],isDirectory:true))
@@ -131,7 +131,6 @@ enum NashiApplication {
         let mainMenu=NSMenu();let appMenu=NSMenu()
         appMenu.addItem(withTitle:"Home",action:#selector(showHome),keyEquivalent:"1")
         appMenu.addItem(withTitle:"Library",action:#selector(showLibrary),keyEquivalent:"2")
-        appMenu.addItem(withTitle:"Security Center",action:#selector(showSecurity),keyEquivalent:"3")
         appMenu.addItem(withTitle:"Find in Library…",action:#selector(findInLibrary),keyEquivalent:"f")
         appMenu.addItem(withTitle:"Choose Files…",action:#selector(chooseFiles),keyEquivalent:"o")
         appMenu.addItem(withTitle:"Download Link…",action:#selector(showDownloadLink),keyEquivalent:"")
@@ -215,11 +214,10 @@ enum NashiApplication {
             state.inputs=CommandLine.arguments[(index+1)...].map{URL(fileURLWithPath:$0)};showHome()
         }
     }
-    @objc func showSecurity() { showHome();state.libraryVisible=false;state.securityVisible=true }
     @objc func showLibrary() {showHome();state.libraryVisible=true;state.selectedHistoryID=state.history.first?.id}
     @objc func findInLibrary() {showLibrary();state.libraryFocusRequest+=1}
     @objc func showHome() {
-        state.libraryVisible=false;state.securityVisible=false
+        state.libraryVisible=false
         progressToast.dismiss()
         if home == nil { home=makeWindow(title:"Kage",size:NSSize(width:1120,height:860),view:HomeView(state:state,updater:updater)) }
         home?.contentMinSize=NSSize(width:960,height:680)
