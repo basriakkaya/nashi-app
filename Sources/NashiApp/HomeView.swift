@@ -11,6 +11,7 @@ struct HomeView:View {
     @AppStorage("toolsKey") private var toolsKey="command"
     @AppStorage("actionsKey") private var actionsKey="control"
     @FocusState private var librarySearchFocused:Bool
+    @State private var handledLibraryFocusRequest=0
     @StateObject private var security: SecurityInspectionModel
     init(state: AppState, updater: AppUpdater, securityModel: SecurityInspectionModel? = nil) {
         self.state = state; self.updater = updater
@@ -48,7 +49,6 @@ struct HomeView:View {
             }.frame(maxWidth:.infinity,maxHeight:.infinity)
         }.frame(minWidth:960,minHeight:680).background(NashiPalette.canvas).tint(.nashi)
             .nashiAnimation(value:state.inputs.isEmpty).nashiAnimation(value:state.working)
-            .onChange(of:state.libraryFocusRequest) { _ in librarySearchFocused=true }
             .onChange(of:state.libraryVisible) { if $0 { state.securityVisible=false } }
             .onChange(of:state.securityVisible) { if $0 { state.libraryVisible=false } }
             .onChange(of:state.inputs) { _ in if !state.working { state.outputs=[];state.error=nil } }
@@ -148,6 +148,9 @@ struct HomeView:View {
                     Text("Workspace history").font(.system(size:30,weight:.bold,design:.default))
                     Text("Your recent results, ready for the next operation.").font(.callout).foregroundStyle(.secondary)
                     TextField("Find a file or tool · ⌘F",text:$state.libraryQuery).textFieldStyle(.roundedBorder).focused($librarySearchFocused)
+                        .onAppear { focusLibrarySearchIfRequested() }
+                        .onChange(of:state.libraryFocusRequest) { _ in focusLibrarySearchIfRequested() }
+                        .onDisappear { librarySearchFocused=false }
                     if let error=state.error {HStack{Label(error,systemImage:"exclamationmark.circle").font(.caption).foregroundStyle(.orange);Spacer();Button("Dismiss"){state.error=nil}.buttonStyle(NashiButtonStyle(.quiet,compact:true))}}
                     if state.filteredHistory.isEmpty {LText(state.history.isEmpty ? "Nothing here yet. Paste something or make your first fresh copy.":"No matches. Try a file name or tool.").foregroundStyle(.secondary).padding(20)}
                     ForEach(state.filteredHistory) {job in
@@ -158,6 +161,16 @@ struct HomeView:View {
                     Text("↑/↓ choose · Space preview · Return use in Kage").font(.caption).foregroundStyle(.secondary)
                 }.padding(28)
             }.onChange(of:state.selectedHistoryID) { id in if let id {scroll.scrollTo(id)} }
+        }
+    }
+    private func focusLibrarySearchIfRequested() {
+        let request=state.libraryFocusRequest
+        guard request != handledLibraryFocusRequest else { return }
+        // The search field is conditionally inserted. Apply the request after
+        // its native control joins the window, including a first Command+F.
+        DispatchQueue.main.async {
+            guard state.libraryVisible,request==state.libraryFocusRequest else { return }
+            librarySearchFocused=true;handledLibraryFocusRequest=request
         }
     }
     private var dropZone:some View {

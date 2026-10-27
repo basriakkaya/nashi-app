@@ -168,6 +168,27 @@ struct UIAuditError:LocalizedError { let message:String;init(_ message:String){s
         host.isReleasedWhenClosed=false;host.title="Kage UI Audit · "+scene;host.contentView=NSHostingView(rootView:root);host.center();window=host;host.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
         try await settle(recorder:isEditor ? recorder:nil)
         guard let content=host.contentView else{throw UIAuditError("Scene has no content view")}
+        if scene == "home.empty" {
+            // Reproduce a single Command+F transition while the search field is
+            // still absent, rather than only checking an already-visible field.
+            for origin in ["workspace", "library", "security"] {
+                if origin == "security" {
+                    state.libraryVisible = false; state.securityVisible = true
+                    try await settle(recorder: nil)
+                }
+                host.makeFirstResponder(nil)
+                state.securityVisible = false; state.libraryVisible = true
+                state.libraryFocusRequest += 1
+                try await settle(recorder: nil)
+                guard let editor = host.firstResponder as? NSTextView, editor.isEditable else {
+                    throw UIAuditError("Library search did not receive focus from " + origin)
+                }
+            }
+            state.libraryVisible = false; state.securityVisible = false
+            try await settle(recorder: nil)
+            let check = "Library search focus from workspace, library and security"
+            if !validatorChecks.contains(check) { validatorChecks.append(check) }
+        }
         observedPreferences=try await verifyPreferences(scene:scene,appearance:appearance,language:language,defaults:defaults,view:content)
         let issues=recorder.issues(in:content.bounds,editor:isEditor)
         try save(scene:scene,appearance:appearance,language:language,view:content,recorder:recorder,issues:issues)

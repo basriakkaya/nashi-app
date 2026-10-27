@@ -144,7 +144,7 @@ enum NashiApplication {
         let edit=NSMenu(title:"Edit")
         for (title,key,selector) in [("Undo","z","undo:"),("Redo","Z","redo:"),("Cut","x","cut:"),("Copy","c","copy:"),("Paste","v","paste:"),("Select All","a","selectAll:")] { edit.addItem(withTitle:title,action:Selector(selector),keyEquivalent:key) }
         let editItem=NSMenuItem(title:"Edit",action:nil,keyEquivalent:"");editItem.submenu=edit;mainMenu.addItem(editItem);NSApp.mainMenu=mainMenu
-        let windowMenu=NSMenu(title:"Window");windowMenu.addItem(withTitle:"Close Window",action:#selector(NSWindow.performClose(_:)),keyEquivalent:"w");let windowItem=NSMenuItem(title:"Window",action:nil,keyEquivalent:"");windowItem.submenu=windowMenu;mainMenu.addItem(windowItem);NSApp.windowsMenu=windowMenu
+        let windowMenu=NSMenu(title:"Window");windowMenu.addItem(withTitle:"Close Window",action:#selector(closeFrontWindow),keyEquivalent:"w").target=self;let windowItem=NSMenuItem(title:"Window",action:nil,keyEquivalent:"");windowItem.submenu=windowMenu;mainMenu.addItem(windowItem);NSApp.windowsMenu=windowMenu
         let menu=NSMenu()
         menu.addItem(withTitle:"Kage",action:#selector(showHome),keyEquivalent:"")
         menu.addItem(NSMenuItem.separator())
@@ -273,7 +273,7 @@ enum NashiApplication {
     @objc func chooseFiles() {
         guard !state.working else { return }
         NSApp.activate(ignoringOtherApps:true)
-        let panel=NSOpenPanel();panel.allowsMultipleSelection=true;panel.canChooseDirectories=true;panel.prompt="Choose Files"
+        let panel=NSOpenPanel();panel.allowsMultipleSelection=true;panel.canChooseDirectories=true;panel.prompt=L10n.text("Choose files")
         if panel.runModal() == .OK { state.inputs=panel.urls;showHome() }
     }
     @objc func showSettings() {
@@ -311,6 +311,13 @@ enum NashiApplication {
         updateConnection?.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
     }
     func menuNeedsUpdate(_ menu:NSMenu) { menu.items.first(where:{$0.action == #selector(toggleEnabled)})?.state=UserDefaults.standard.bool(forKey:"enabled") ? .on:.off }
+    @objc func closeFrontWindow() {
+        guard NSApp.modalWindow == nil,let window=NSApp.keyWindow ?? NSApp.mainWindow,
+              window.attachedSheet == nil else { return }
+        // Borderless tool panels have a custom close button. Route the menu
+        // through our action so AppKit does not disable it for lacking traffic lights.
+        window.performClose(nil)
+    }
     @objc func quit() { NSApp.terminate(nil) }
     func showProgress() {
         guard state.working else { return }
@@ -356,6 +363,10 @@ enum NashiApplication {
 extension AppDelegate:NSMenuItemValidation {
     func validateMenuItem(_ menuItem:NSMenuItem)->Bool {
         if menuItem.action == #selector(checkForUpdates) { return !updater.isConfigured || (updater.canCheckForUpdates && !updater.isBusy) }
+        if menuItem.action == #selector(closeFrontWindow) {
+            guard NSApp.modalWindow == nil,let window=NSApp.keyWindow ?? NSApp.mainWindow else { return false }
+            return window.isVisible && window.attachedSheet == nil
+        }
         if menuItem.action == #selector(quit) { return !state.working }
         return true
     }
