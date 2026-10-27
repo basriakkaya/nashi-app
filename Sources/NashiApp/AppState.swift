@@ -23,7 +23,6 @@ struct JobRecord:Codable,Identifiable {
     @Published var activeInputs:[URL]=[]
     @Published var history:[JobRecord]=[]
     @Published var libraryVisible=false
-    @Published var securityVisible=false
     @Published var libraryQuery=""
     @Published var selectedHistoryID:UUID?
     @Published var libraryFocusRequest=0

@@ -2,24 +2,63 @@
 
 [English](README.md) · [Türkçe](README.tr.md)
 
-Siyah/kırmızı tasarımlı, terminal esintili, yerel güvenlik incelemesi eklenmiş kişisel dosya çalışma alanı. Nashi’nin açık kaynak motoru üzerine bağımsız olarak geliştirilmiştir.
+**Kage, Orkun Işıtmak ve katkıda bulunanların geliştirdiği [Nashi](https://github.com/orkunisitmak/nashi-app) projesinin bağımsız macOS fork’udur.** Nashi’nin dönüştürme ve düzenleme araçlarını korur; siyah/kırmızı, terminal esintili bir arayüz ve belgelenmiş hata düzeltmeleri sunar. Kage’ye özgü değişiklikler Basri Akkaya’ya aittir. Resmî Nashi yayını değildir.
 
 ![Kage çalışma alanı](docs/assets/kage/workspace-dark-tr.png)
 
-## Özellikler
+## Neler yapar?
 
-- Yeni macOS çalışma alanı, işlem geçmişi, sürükle–çark araçları ve dosya önizlemesi.
-- 45 girdi biçimi ve 27 dosya aracı: görsel/PDF/medya/belge dönüştürme, kırpma, açıklama, metadata, sansür ve arşiv işlemleri.
-- **Güvenlik Merkezi:** SHA-256 parmak izi, beklenen özetle karşılaştırma, dosya başlığı–uzantı farkları, çalıştırılabilir içerik ve izinler, görünmeyen ad karakterleri, karantina gözlemi ve tam dosya yolu içermeyen JSON raporu.
-- İnceleme dosyaları yüklemez veya çalıştırmaz. Sembolik bağlantıları, aygıtları ve klasörleri reddeder; iptal edilebilir; dosya işlem sırasında değişirse sonuç verilmez. Antivirüs taraması veya güvenli dosya hükmü değildir.
-- Ayrı uygulama kimliği (`com.basriakkaya.kage`), tercihler ve içe aktarılan dosyalar. Nashi’nin güncelleme kanalı ve kayıtlı bağlantıları Kage sürümünde kullanılmaz.
-- Türkçe/İngilizce ve açık/koyu tema. İlk açılış tercihi Türkçe ve koyudur.
+- Görsel, PDF, ses, video, belge ve arşivler için 45 girdi biçimi ve 27 araç.
+- MP3, M4A, WAV, FLAC, OGG/Vorbis, Opus, AIFF ve WMA arasında ses dönüşümü; kırpma, normalleştirme, kanal kontrolleri ve metadata kopyaları.
+- Dosya önizlemesi, aranabilir geçmiş, toplu dışa aktarma ve özgün sürükle–çark akışı.
+- Kage simgesi, siyah/kırmızı çalışma alanı, Türkçe/İngilizce ve açık/koyu arayüz. İlk tercih Türkçe/koyudur; Ayarlar’dan değiştirebilirsin.
+- Ayrı uygulama kimliği ve tercihler. Bu bağımsız sürümde Nashi’nin otomatik güncelleme kanalı kullanılmaz.
 
-Nashi’ye ayrı gönderilen sansür ve arşiv sınırı düzeltmeleri Kage’ye dahil edilmiştir. Ürün **Apple Silicon / macOS 13+** içindir. Depodaki Windows kaynakları geçmiş referanstır; Kage Windows sürümü sunulmaz.
+Çalışma alanı dönüştürme ve düzenlemeye odaklanır. Ek dosya tarama paneli, parmak izi karşılaştırma ekranı veya inceleme raporu özelliği içermez. Depodaki Windows kaynakları upstream referansıdır; **Kage yayınları Apple Silicon / macOS 13+ içindir.**
 
-## Derle ve kullan
+## Kurulum
 
-Swift 6 içeren Xcode ve Python 3.11+ gerekir. Yardımcı araçlar sistem geneline kurulmaz, bu çalışma kopyasında hazırlanır.
+1. [Kage yayınları](https://github.com/basriakkaya/nashi-app/releases) sayfasından macOS ZIP’ini indir.
+2. ZIP’i açıp **Kage.app** dosyasını **Uygulamalar** klasörüne sürükle.
+3. Kage’yi aç; dosyanı seç veya bırak.
+
+Medya, belge ve metadata araçları pakete dahildir; sistem geneline ek kurulum gerekmez. Bu sürüm **yerel/ad-hoc imzalıdır; Apple Developer ID ile notarize edilmiş bir yayın değildir** ve macOS indirilen kopyayı engelleyebilir. Sistem korumalarını açık tut. Bu yerel sürümde otomatik güncelleme ve oturum açılışında başlatma kullanılamaz. İsteğe bağlı pencere düzenleme başlangıçta kapalıdır; açılırsa ayrıca macOS izni gerekir.
+
+## Günlük kısayollar
+
+| Kısayol | İşlev |
+| --- | --- |
+| ⌘1 / ⌘2 | Çalışma Alanı / Kitaplık |
+| ⌘O | Dosya seç |
+| ⌘F | Kitaplığı aç ve aramayı odakla |
+| ⌘V | Kopyalanmış dosya, metin, görsel veya desteklenen bağlantıyı al; metin alanında normal yapıştır |
+| Çalışma alanında Enter / ⌘Enter | Seçili dosyaların araçlarını aç |
+| Çarkta oklar, Enter, Esc | Seç, uygula, iptal et |
+| Kitaplıkta ↑/↓, Space, Enter | Sonuç seç, önizle, yeniden kullan |
+| ⌘, / ⌘W / ⌘Q | Ayarlar / pencereyi kapat / çık |
+| ⌃⇧D | Web indirme penceresini aç; panodaki geçerli HTTP(S) medya bağlantısını doldur |
+| Sürüklerken ⇧ / ⌘ / ⌃ | Dönüştürme / araçlar / dosya işlemleri; Ayarlar’dan değiştirilebilir |
+| Ses/video düzenleyicide Space | Oynat/duraklat |
+| Düzenleyicide ←/→, ⇧←/→ | Bir saniye / hassas adım (videoda bir kare, seste 0,1 sn) |
+| Zaman kırpmada I / O / ⇧Space | Başlangıç / bitiş işaretle / seçili aralığı oynat |
+| ⌘S | Yeni çıktı kopyasını kaydet |
+
+**Bağlantının otomatik dolması:** önce gerçek medya/paylaşım URL’sini kopyala, sonra Control+Shift+D’ye bas. Yerel dosya, özet değeri veya sıradan metin web bağlantısı değildir; bu durumda alan otomatik dolmaz. Yalnızca herkese açık medya desteklenir; giriş gerektiren ve korumalı içerik kullanılamayabilir. Web indirmeleri seçtiğin siteye bağlanır; dönüştürme ve düzenlemeler yerelde çalışır.
+
+Yerel düzenleme araçları MP3, M4A, WAV ve FLAC için sunulur. OGG, Opus, AIFF veya WMA dosyasını önce WAV’a dönüştürüp çıkan dosyayı düzenleme için aç. Ses dosyanı seçip bir çıktı biçimine veya ses aracına geç. Kaydetmeden önce aralığı ve kanalları kontrol et. Çıktılar yeni dosyalardır; kaynak korunur. Kayıplı biçimler ses sinyalini değiştirir ve her dönüşümün dosyayı küçültmesi beklenmemelidir.
+
+## Fork’ta korunan düzeltmeler
+
+- Düz görsel/video sansürü opak kalır ve kesirli piksel seçimlerini kapsar.
+- Arşiv bağlantı hedefleri dosyalar oluşturulmadan önce doğrulanır.
+- Belge dönüştürücü imzalı paket içine Python önbelleği yazmaz; CSV/TSV sayıları tutarlı yerelle çıkar ve PDF sunum görsellerinin renkleri korunur.
+- ⌘F yeni açılan arama alanını doğru odaklar; ⌘W kenarlıksız araç pencerelerinde çalışır.
+
+Bunlar kapsamı belli düzeltme ve testlerdir; her olası tehdit veya girdi için garanti değildir. [Doğrulama ve ses kapsamı](docs/testing/KAGE-VALIDATION.md) belgesine bak.
+
+## Kaynaktan derle
+
+Apple Silicon macOS üzerinde Swift 6 içeren Xcode ve Python 3.11+ gerekir.
 
 ```sh
 python3 scripts/setup-kage-tools.py
@@ -27,32 +66,19 @@ zsh scripts/build-kage.sh release
 open build/Kage.app
 ```
 
-Uygulama, doğrulanan medya/Office araçlarını, ExifTool’u, yerel belge kütüphanelerini ve lisanslarını paketler. Varsayılan çıktı `build/Kage.app`; farklı hedef için `KAGE_APP_OUTPUT` kullanılır.
+Varsayılan çıktı `build/Kage.app`; farklı hedef için `KAGE_APP_OUTPUT` kullanılır. Araç indirmeleri sabitlenmiş özetlerle doğrulanır. Bileşen lisansları pakette korunur.
 
-Bu sürüm **yerel ad-hoc imzalıdır**, Apple tarafından notarize edilmiş genel yayın değildir. Kage’ye ait imzalı yayın kanalı kurulana kadar otomatik güncellemeler kapalıdır. İşletim sistemi korumaları kapatılmaz. Bu yerel kopyada oturum açılışında başlatma kullanılamayabilir. Diğer uygulamaların pencerelerini düzenleme özelliği ayrı macOS izni ister ve başlangıçta kapalıdır.
-
-## Akış
-
-Dosya seç veya bırak; ardından dönüşüm ya da araç seç. **⌘1** çalışma alanını, **⌘2** kitaplığı, **⌘3** Güvenlik Merkezi’ni açar. **⌘O** dosya seçer. Güvenlik Merkezi’nin ayrı seçicisi bir işlemde en çok 32 normal dosya alır.
-
-Parmak izini güvenilir bir kaynaktan aldığın değerle karşılaştır. Eşleşme yalnızca sağladığın değerle aynı olduğunu gösterir; yayıncı kimliği veya zararlı yazılım güvenliği garantisi vermez. Metadata ve sansür işlemleri yeni kopya üretir, kaynakları korur.
-
-Komut satırından inceleme:
-
-```sh
-build/Kage.app/Contents/MacOS/Kage security /path/to/file
-```
-
-## Doğrulama
+## Doğrula
 
 ```sh
 swift test
 python3 scripts/test-native-ui.py --app build/Kage.app/Contents/MacOS/Kage --output work/native-ui
 build/Kage.app/Contents/MacOS/Kage --kage-smoke work/packaged-smoke
+python3 scripts/test-kage-audio.py --app build/Kage.app --output work/audio-qa
 ```
 
-Arayüz ve paket kontrolleri için yeni, boş çıktı klasörleri seç. Kontroller sentetik dosyalar kullanır. Arayüz denetimi 48 görünüm/tema/dil birleşimini, paket kontrolü içindeki araçlarla gerçek dönüşümleri kapsar; başka macOS sürümleri veya mimariler için kabul kanıtı değildir.
+Yeni ve boş çıktı klasörleri kullan. Arayüz matrisi 40 görünüm/tema/dil birleşimini kapsar. Ses kontrolleri sentetik sinyaller üretip süre, kanal, örnekleme hızı, sessizleşmeme, kanal kimliği, geri dönüşümler ve gerçek araç çıktılarını doğrular. GitHub’da tüm çekirdek/güncelleme testleri, paket kontrolleri ve ses doğrulaması çalışır. Canlı Instagram/YouTube CDN testleri isteğe bağlıdır; fiziksel sürükleme/tuş davranışı arayüz görselleri ve motor testlerinden ayrı değerlendirilir.
 
 ## Kaynak ve lisans
 
-Kage, Basri Akkaya tarafından; Orkun Işıtmak ve katkıda bulunanların [Nashi](https://github.com/orkunisitmak/nashi-app) projesi temel alınarak bağımsız biçimde özelleştirilmiştir. Özgün [MIT lisansı](LICENSE), telif hakkı, atıflar ve üçüncü taraf lisansları korunur. [Kage bildirimi](Resources/KAGE-NOTICE.txt), [üçüncü taraf bildirimleri](Resources/THIRD-PARTY-NOTICES.txt) ve `Resources/licenses/` dizinine bak. Kage resmî Nashi yayını değildir; Tangerine/LEAP STUDIO ile bağlantılı değildir.
+Upstream: [orkunisitmak/nashi-app](https://github.com/orkunisitmak/nashi-app). Özgün telif hakkı ve [MIT lisansı](LICENSE) korunur. [Kage bildirimi](Resources/KAGE-NOTICE.txt), [üçüncü taraf bildirimleri](Resources/THIRD-PARTY-NOTICES.txt) ve `Resources/licenses/` dizinine bak. Kage, resmî Nashi yayını ve Tangerine/LEAP STUDIO’dan bağımsızdır. `Nashi*` modül adları upstream değişikliklerini izlenebilir tutmak için korunmuştur.

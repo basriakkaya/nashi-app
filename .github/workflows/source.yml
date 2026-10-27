@@ -29,7 +29,7 @@ jobs:
         run: python3 scripts/scan-secrets.py
   mac-source:
     runs-on: macos-15
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -37,22 +37,25 @@ jobs:
           persist-credentials: false
       - name: Public source boundary
         run: python3 scripts/audit-public-tree.py
-      - name: Build native macOS app
-        run: swift build --product Nashi
-      - name: Isolated native UI, accessibility and artwork checks
-        run: python3 scripts/test-native-ui.py
+      - name: Prepare pinned local conversion tools
+        run: python3 scripts/setup-kage-tools.py
+      - name: Build and verify the packaged Kage app
+        run: zsh scripts/build-kage.sh release
+      - name: Full core and update regression suite
+        run: swift test
+      - name: Native UI, accessibility and artwork checks
+        run: python3 scripts/test-native-ui.py --app build/Kage.app/Contents/MacOS/Kage
+      - name: Packaged conversion and export checks
+        run: build/Kage.app/Contents/MacOS/Kage --kage-smoke work/packaged-smoke
+      - name: Audio formats, signals, channels, loudness and batch exports
+        run: python3 scripts/test-kage-audio.py --app build/Kage.app --output work/audio-qa
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()
         with:
-          name: mac-native-ui
-          path: build/native-ui
+          name: mac-native-validation
+          path: |
+            build/native-ui
+            work/packaged-smoke/kage-smoke.json
+            work/audio-qa/audio-qa.json
           retention-days: 7
           if-no-files-found: warn
-      - name: Archive link boundary and extraction regressions
-        run: swift test --filter 'ArchiveLinkBoundaryTests|ArchiveResourceLimitsTests|DocumentEngineTests/testArchive|DocumentEngineTests/testZIPTARGZIPRoundTripsNestedFilesAndUnicodeWithoutOverwritingOriginals|DocumentEngineTests/testStoredRARAndOrdinaryGZIPAreReadable|DocumentEngineTests/testCancellationProducesNoPublishedDocumentOrExtractedFolder'
-      - name: Update trust, web photo and window placement and setup regressions
-        run: swift test --filter 'NashiUpdatesTests|WebMediaDragPayloadTests|InstagramPhotosTests|YouTubeThumbnailTests|WindowPlacementTests|AppLocalizationTests|ToolSetupTests'
-      - name: Install FFmpeg for redaction regressions
-        run: brew install ffmpeg
-      - name: Redaction coverage and image opacity regressions
-        run: swift test --filter 'FileSecurityInspectionTests|SolidRedactionCoverageTests|ImageRedactionBoundsRegressionTests|ImageColorOpacityRegressionTests|MediaEngineTests/testVideoRedactionStylesAndTemporalBounds'

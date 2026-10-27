@@ -28,14 +28,6 @@ import NashiUpdates
                 let source = output.appendingPathComponent("Sample.png")
                 try ImageEngine.write(context.makeImage()!, to: source)
                 let before = try Data(contentsOf: source)
-                let model = SecurityInspectionModel(); await model.inspect([source])
-                try check(model.reports.count == 1 && model.reports.first?.detectedType == "PNG", "Security Center model inspects an actual local PNG")
-                let report = model.reports[0]
-                try check(try FileSecurityInspection.matches(report.sha256.uppercased(), report: report), "SHA-256 comparison accepts the matching fingerprint")
-                try check(try !FileSecurityInspection.matches(String(repeating: "0", count: 64), report: report), "SHA-256 comparison rejects a different fingerprint")
-                let json = try FileSecurityInspection.export(model.reports)
-                try check(!String(decoding: json, as: UTF8.self).contains(output.path), "Exported inspection report omits private paths")
-                try json.write(to: output.appendingPathComponent("Inspection.json"))
                 var options = OperationOptions(); options.outputDirectory = output; options.preserveMetadata = false
                 let jpeg = try ConversionEngine.run(.init(inputs: [source], operation: .convert("jpg"), options: options))[0]
                 try check(try ImageEngine.load(jpeg).width == 64, "Actual PNG to JPEG conversion")

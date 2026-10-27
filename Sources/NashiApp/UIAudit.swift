@@ -5,7 +5,7 @@ import NashiCore
 import NashiUpdates
 
 struct UIAuditOptions {
-    static let scenes=["home.empty","home.selected","library","security.empty","security.result","settings.general","settings.formats","settings.updates","wheel.pdf-multiple","editor.crop-image","editor.annotate-image","editor.frame-image"]
+    static let scenes=["home.empty","home.selected","library","settings.general","settings.formats","settings.updates","wheel.pdf-multiple","editor.crop-image","editor.annotate-image","editor.frame-image"]
     var output:URL
     var scenes=Self.scenes
     var appearances=["light","dark"]
@@ -131,18 +131,8 @@ struct UIAuditError:LocalizedError { let message:String;init(_ message:String){s
         let isEditor=scene.hasPrefix("editor.")
         let view:AnyView,size:NSSize
         switch scene {
-        case "home.empty","home.selected","library","security.empty","security.result":
-            let security=SecurityInspectionModel()
-            if scene.hasPrefix("security.") {
-                state.securityVisible=true
-                if scene=="security.result" {
-                    let mismatch=fixtureRoot!.appendingPathComponent("preview-image.jpg")
-                    if !FileManager.default.fileExists(atPath:mismatch.path) { try FileManager.default.copyItem(at:image,to:mismatch) }
-                    await security.inspect([mismatch,text])
-                    guard security.reports.count==2,security.reports.first?.cautionCount==1 else { throw UIAuditError("Security scene did not produce its expected real inspection results") }
-                }
-            }
-            view=AnyView(HomeView(state:state,updater:updater,securityModel:security));size=NSSize(width:1120,height:820)
+        case "home.empty","home.selected","library":
+            view=AnyView(HomeView(state:state,updater:updater));size=NSSize(width:1120,height:820)
         case "settings.general","settings.formats","settings.updates":
             let section:SettingsSection=scene=="settings.formats" ? .formats:scene=="settings.updates" ? .updates:.general
             view=AnyView(SettingsView(updater:updater,initialSection:section));size=NSSize(width:790,height:590)
@@ -171,22 +161,18 @@ struct UIAuditError:LocalizedError { let message:String;init(_ message:String){s
         if scene == "home.empty" {
             // Reproduce a single Command+F transition while the search field is
             // still absent, rather than only checking an already-visible field.
-            for origin in ["workspace", "library", "security"] {
-                if origin == "security" {
-                    state.libraryVisible = false; state.securityVisible = true
-                    try await settle(recorder: nil)
-                }
+            for origin in ["workspace", "library"] {
                 host.makeFirstResponder(nil)
-                state.securityVisible = false; state.libraryVisible = true
+                state.libraryVisible = true
                 state.libraryFocusRequest += 1
                 try await settle(recorder: nil)
                 guard let editor = host.firstResponder as? NSTextView, editor.isEditable else {
                     throw UIAuditError("Library search did not receive focus from " + origin)
                 }
             }
-            state.libraryVisible = false; state.securityVisible = false
+            state.libraryVisible = false
             try await settle(recorder: nil)
-            let check = "Library search focus from workspace, library and security"
+            let check = "Library search focus from workspace and library"
             if !validatorChecks.contains(check) { validatorChecks.append(check) }
         }
         observedPreferences=try await verifyPreferences(scene:scene,appearance:appearance,language:language,defaults:defaults,view:content)

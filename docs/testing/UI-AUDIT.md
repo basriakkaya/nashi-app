@@ -36,15 +36,13 @@ Both audit commands accept these optional filters:
 --language en|tr|both
 ```
 
-Unknown scenes/options, empty selections, repeated scenes and invalid themes/languages fail. No filter means the complete matrix: **12 macOS scenes × 2 appearances × 2 languages = 48 captures**. The retained Windows sources still use the upstream ten-scene matrix.
+Unknown scenes/options, empty selections, repeated scenes and invalid themes/languages fail. No filter means the complete matrix: **10 scenes × 2 appearances × 2 languages = 40 captures**.
 
 | Scene ID | Production surface |
 | --- | --- |
 | home.empty | Home with no selected input |
 | home.selected | Home with one generated image |
 | library | Image, text, PDF and missing-file entries |
-| security.empty | Local file inspection introduction |
-| security.result | Real inspections of two synthetic files, including a header mismatch |
 | settings.general | General preferences |
 | settings.formats | Format preferences |
 | settings.updates | Update preferences, without checking for an update |
