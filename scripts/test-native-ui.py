@@ -13,7 +13,7 @@ def bundle_for_audit(binary, output):
     if any(parent.suffix == ".app" for parent in binary.parents):
         return binary
     repository = Path(__file__).resolve().parent.parent
-    candidate = output / "application/Nashi UI Audit.app"
+    candidate = output / "application/Kage UI Audit.app"
     marker = candidate.parent / ".nashi-ui-audit-app"
     if candidate.exists():
         if not marker.is_file():
@@ -24,9 +24,9 @@ def bundle_for_audit(binary, output):
     (contents / "MacOS").mkdir(parents=True)
     resources.mkdir()
     shutil.copy2(binary, contents / "MacOS/Nashi")
-    with (repository / "Resources/Info.plist").open("rb") as stream:
+    with (repository / "Resources/KageInfo.plist").open("rb") as stream:
         info = plistlib.load(stream)
-    info.update(CFBundleIdentifier="local.nashi.ui-audit", CFBundleDisplayName="Nashi UI Audit",
+    info.update(CFBundleIdentifier="local.kage.ui-audit", CFBundleDisplayName="Kage UI Audit", CFBundleExecutable="Nashi",
                 NashiExternalTools=True)
     # This candidate is only used by the three explicit own-window QA entrypoints.
     info.pop("CFBundleDocumentTypes", None)
@@ -39,9 +39,6 @@ def bundle_for_audit(binary, output):
         shutil.copytree(core_resources, resources / core_resources.name)
     framework = repository / ".build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
     shutil.copytree(framework, contents / "Frameworks/Sparkle.framework", symlinks=True)
-    subprocess.run(["python3", str(repository / "scripts/configure-updates.py"),
-                    str(contents / "Info.plist"), str(repository / "Configuration/Updates.public.plist")],
-                   check=True, capture_output=True)
     subprocess.run(["codesign", "--force", "--sign", "-", "--options", "0", "--timestamp=none", str(candidate)],
                    check=True, capture_output=True)
     marker.write_text("Generated Nashi own-window QA bundle; no optional tool installers.\n")
@@ -81,9 +78,9 @@ def main():
 
     invoke(["--ui-audit", output / "gallery"])
     gallery = json.loads((output / "gallery/manifest.json").read_text())
-    assert gallery["passed"] and len(gallery["captures"]) == 40
+    assert gallery["passed"] and len(gallery["captures"]) == 48
     assert len(gallery["validatorChecks"]) >= 18
-    expected = {(s, a, l) for s in ["home.empty", "home.selected", "library",
+    expected = {(s, a, l) for s in ["home.empty", "home.selected", "library", "security.empty", "security.result",
         "settings.general", "settings.formats", "settings.updates", "wheel.pdf-multiple",
         "editor.crop-image", "editor.annotate-image", "editor.frame-image"]
         for a in ["light", "dark"] for l in ["en", "tr"]}
@@ -98,7 +95,7 @@ def main():
     invoke(["--file-artwork-smoke", output / "artwork"])
     artwork = json.loads((output / "artwork/file-artwork.json").read_text())
     assert artwork["passed"] >= 11 and artwork["asyncProviderCalls"] == 1
-    print(f"PASS: 40 native UI captures; {len(gallery['validatorChecks'])} audit guardrails; "
+    print(f"PASS: 48 native UI captures; {len(gallery['validatorChecks'])} audit guardrails; "
           f"{len(ranges['checks'])} range checks; {artwork['passed']} artwork checks; parser/output safety")
 
 

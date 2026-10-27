@@ -14,13 +14,13 @@ import NashiUpdates
         Task {
             var failure:String?
             do { try await run() } catch { failure=String(describing:error) }
-            let report:[String:Any]=["passed":failure == nil,"checks":checks,"error":failure as Any? ?? NSNull(),"scope":"Isolated Nashi settings, real language picker, open-view refresh, draft preservation and native wheel render."]
+            let report:[String:Any]=["passed":failure == nil,"checks":checks,"error":failure as Any? ?? NSNull(),"scope":"Isolated Kage settings, real language picker, open-view refresh, draft preservation and native wheel render."]
             try? FileManager.default.createDirectory(at:output,withIntermediateDirectories:true)
             if let data=try? JSONSerialization.data(withJSONObject:report,options:[.prettyPrinted,.sortedKeys]) { try? data.write(to:output.appendingPathComponent("mac-localization.json")) }
             window?.close();exit(failure == nil ? 0:1)
         }
     }
-    private func check(_ value:Bool,_ label:String)throws { if !value { throw NSError(domain:"Nashi Language QA",code:1,userInfo:[NSLocalizedDescriptionKey:label]) };checks.append(label) }
+    private func check(_ value:Bool,_ label:String)throws { if !value { throw NSError(domain:"Kage Language QA",code:1,userInfo:[NSLocalizedDescriptionKey:label]) };checks.append(label) }
     private func pause()async { try? await Task.sleep(nanoseconds:350_000_000) }
     private func attribute(_ element:AXUIElement,_ key:String)->Any? { var value:CFTypeRef?;return AXUIElementCopyAttributeValue(element,key as CFString,&value) == .success ? value:nil }
     private func descendants(_ element:AXUIElement,depth:Int=0)->[AXUIElement] {
@@ -34,22 +34,22 @@ import NashiUpdates
         view.cacheDisplay(in:view.bounds,to:rep);if let data=rep.representation(using:.png,properties:[:]) { try data.write(to:output.appendingPathComponent(name)) }
     }
     private func run()async throws {
-        try check(AXIsProcessTrusted()&&CGPreflightPostEventAccess(),"Existing Nashi Accessibility permission is available")
+        try check(AXIsProcessTrusted()&&CGPreflightPostEventAccess(),"Existing Kage Accessibility permission is available")
         try FileManager.default.createDirectory(at:output,withIntermediateDirectories:true)
-        let suite="Nashi.LanguageQA."+UUID().uuidString,defaults=UserDefaults(suiteName:suite)!
+        let suite="Kage.LanguageQA."+UUID().uuidString,defaults=UserDefaults(suiteName:suite)!
         defer { defaults.removePersistentDomain(forName:suite) }
         defaults.set("en",forKey:"appLanguage")
         let view=LanguageFixture(updater:AppUpdater()).nashiLanguage().defaultAppStorage(defaults)
         let w=NSWindow(contentRect:NSRect(x:100,y:80,width:860,height:750),styleMask:[.titled,.closable,.resizable],backing:.buffered,defer:false)
-        w.title="Nashi Language QA";w.isReleasedWhenClosed=false;w.contentView=NSHostingView(rootView:view);window=w
+        w.title="Kage Language QA";w.isReleasedWhenClosed=false;w.contentView=NSHostingView(rootView:view);window=w
         w.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true);await pause()
         let app=AXUIElementCreateApplication(getpid());AXUIElementSetMessagingTimeout(app,0.3)
-        guard let root=(attribute(app,kAXWindowsAttribute) as? [AXUIElement])?.first(where:{attribute($0,kAXTitleAttribute) as? String=="Nashi Language QA"}) else { throw NSError(domain:"Nashi Language QA",code:2,userInfo:[NSLocalizedDescriptionKey:"Own fixture window is not accessible"]) }
+        guard let root=(attribute(app,kAXWindowsAttribute) as? [AXUIElement])?.first(where:{attribute($0,kAXTitleAttribute) as? String=="Kage Language QA"}) else { throw NSError(domain:"Kage Language QA",code:2,userInfo:[NSLocalizedDescriptionKey:"Own fixture window is not accessible"]) }
         let elements=descendants(root)
         guard let picker=elements.first(where:{attribute($0,kAXIdentifierAttribute) as? String=="AppLanguage"}),
               let draft=elements.first(where:{attribute($0,kAXIdentifierAttribute) as? String=="LanguageDraft"}) else {
             try texts(root).joined(separator:"\n").write(to:output.appendingPathComponent("accessibility.txt"),atomically:true,encoding:.utf8)
-            throw NSError(domain:"Nashi Language QA",code:3,userInfo:[NSLocalizedDescriptionKey:"Language picker or draft field not accessible"])
+            throw NSError(domain:"Kage Language QA",code:3,userInfo:[NSLocalizedDescriptionKey:"Language picker or draft field not accessible"])
         }
         let raw="Home Library · Türkçe ıİşğü 🍐 {0}"
         try check(AXUIElementSetAttributeValue(draft,kAXValueAttribute as CFString,raw as CFString) == .success,"Draft edited through Accessibility")

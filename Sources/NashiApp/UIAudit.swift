@@ -5,7 +5,7 @@ import NashiCore
 import NashiUpdates
 
 struct UIAuditOptions {
-    static let scenes=["home.empty","home.selected","library","settings.general","settings.formats","settings.updates","wheel.pdf-multiple","editor.crop-image","editor.annotate-image","editor.frame-image"]
+    static let scenes=["home.empty","home.selected","library","security.empty","security.result","settings.general","settings.formats","settings.updates","wheel.pdf-multiple","editor.crop-image","editor.annotate-image","editor.frame-image"]
     var output:URL
     var scenes=Self.scenes
     var appearances=["light","dark"]
@@ -76,11 +76,11 @@ struct UIAuditError:LocalizedError { let message:String;init(_ message:String){s
             guard entries.isEmpty else{throw UIAuditError("Choose an empty output directory; UI audit will not overwrite unrelated files.")}
         }
         try manager.createDirectory(at:options.output,withIntermediateDirectories:true)
-        try Data("Nashi UI audit v1\n".utf8).write(to:marker,options:.atomic)
+        try Data("Kage UI audit v1\n".utf8).write(to:marker,options:.atomic)
         outputPrepared=true
     }
     private func makeFixtures()throws {
-        let directory=FileManager.default.temporaryDirectory.appendingPathComponent("Nashi-UIAudit-"+UUID().uuidString,isDirectory:true)
+        let directory=FileManager.default.temporaryDirectory.appendingPathComponent("Kage-UIAudit-"+UUID().uuidString,isDirectory:true)
         try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true);fixtureRoot=directory
         let imageURL=directory.appendingPathComponent("İstanbul – uzun dosya adı ve görsel örneği 🍐.png")
         let bitmap=NSBitmapImageRep(bitmapDataPlanes:nil,pixelsWide:640,pixelsHigh:400,bitsPerSample:8,samplesPerPixel:4,hasAlpha:true,isPlanar:false,colorSpaceName:.deviceRGB,bytesPerRow:640*4,bitsPerPixel:32)!
@@ -88,7 +88,7 @@ struct UIAuditError:LocalizedError { let message:String;init(_ message:String){s
         NSColor(calibratedRed:0.16,green:0.30,blue:0.21,alpha:1).setFill();NSBezierPath(rect:NSRect(x:0,y:0,width:640,height:400)).fill()
         NSColor(calibratedRed:0.89,green:0.72,blue:0.35,alpha:1).setFill();NSBezierPath(roundedRect:NSRect(x:40,y:50,width:300,height:230),xRadius:24,yRadius:24).fill();NSGraphicsContext.restoreGraphicsState()
         guard let data=bitmap.representation(using:.png,properties:[:])else{throw UIAuditError("Image fixture could not be generated")};try data.write(to:imageURL)
-        let textURL=directory.appendingPathComponent("Türkçe notlar – kaynak dosya.txt");try "Nashi audit fixture · ıİşğü 🍐\nOriginal files stay intact.".write(to:textURL,atomically:true,encoding:.utf8)
+        let textURL=directory.appendingPathComponent("Türkçe notlar – kaynak dosya.txt");try "Kage audit fixture · ıİşğü 🍐\nOriginal files stay intact.".write(to:textURL,atomically:true,encoding:.utf8)
         for number in 1...2 {
             let pdf=PDFDocument();for _ in 0..<2 {guard let page=PDFPage(image:NSImage(data:data)!)else{throw UIAuditError("PDF fixture could not be generated")};pdf.insert(page,at:pdf.pageCount)}
             let path=directory.appendingPathComponent("Örnek belge \(number).pdf");guard pdf.write(to:path)else{throw UIAuditError("PDF fixture could not be saved")};fixtures["pdf\(number)"]=path
@@ -105,7 +105,7 @@ struct UIAuditError:LocalizedError { let message:String;init(_ message:String){s
             // Release the previous SwiftUI graph before changing the process-only
             // overrides. Every cell gets a new AppStorage identity and domain.
             window?.contentView=nil;window?.close();window=nil
-            let suite="Nashi.UIAudit."+UUID().uuidString;suites.insert(suite)
+            let suite="Kage.UIAudit."+UUID().uuidString;suites.insert(suite)
             guard let defaults=UserDefaults(suiteName:suite) else{throw UIAuditError("Isolated audit preferences could not be created")}
             var arguments=originalArguments;arguments["appLanguage"]=language;arguments["appAppearance"]=appearance;arguments["reduceAnimations"]=true;arguments["soundsAndHapticsEnabled"]=false;arguments["sound"]=false;arguments["reveal"]=false
             UserDefaults.standard.setVolatileDomain(arguments,forName:UserDefaults.argumentDomain)
@@ -131,7 +131,18 @@ struct UIAuditError:LocalizedError { let message:String;init(_ message:String){s
         let isEditor=scene.hasPrefix("editor.")
         let view:AnyView,size:NSSize
         switch scene {
-        case "home.empty","home.selected","library":view=AnyView(HomeView(state:state,updater:updater));size=NSSize(width:700,height:580)
+        case "home.empty","home.selected","library","security.empty","security.result":
+            let security=SecurityInspectionModel()
+            if scene.hasPrefix("security.") {
+                state.securityVisible=true
+                if scene=="security.result" {
+                    let mismatch=fixtureRoot!.appendingPathComponent("preview-image.jpg")
+                    if !FileManager.default.fileExists(atPath:mismatch.path) { try FileManager.default.copyItem(at:image,to:mismatch) }
+                    await security.inspect([mismatch,text])
+                    guard security.reports.count==2,security.reports.first?.cautionCount==1 else { throw UIAuditError("Security scene did not produce its expected real inspection results") }
+                }
+            }
+            view=AnyView(HomeView(state:state,updater:updater,securityModel:security));size=NSSize(width:1120,height:820)
         case "settings.general","settings.formats","settings.updates":
             let section:SettingsSection=scene=="settings.formats" ? .formats:scene=="settings.updates" ? .updates:.general
             view=AnyView(SettingsView(updater:updater,initialSection:section));size=NSSize(width:790,height:590)
@@ -142,7 +153,7 @@ struct UIAuditError:LocalizedError { let message:String;init(_ message:String){s
             let wheel=WheelView(frame:NSRect(x:0,y:0,width:320,height:320));let inputs=[fixtures["pdf1"]!,fixtures["pdf2"]!]
             wheel.mode = .tools;wheel.inputs=inputs
             wheel.items=FeatureCatalog.tools(for:inputs).map{WheelItem(title:FeatureCatalog.toolNames[$0] ?? $0.title,symbol:FeatureCatalog.toolSymbols[$0],operation:.tool($0))};wheel.centerTitle="Tools"
-            let host=NSWindow(contentRect:NSRect(x:0,y:0,width:320,height:320),styleMask:[.titled,.closable],backing:.buffered,defer:false);host.isReleasedWhenClosed=false;host.title="Nashi UI Audit · "+scene;host.contentView=wheel;host.center();host.makeKeyAndOrderFront(nil);window=host;NSApp.activate(ignoringOtherApps:true)
+            let host=NSWindow(contentRect:NSRect(x:0,y:0,width:320,height:320),styleMask:[.titled,.closable],backing:.buffered,defer:false);host.isReleasedWhenClosed=false;host.title="Kage UI Audit · "+scene;host.contentView=wheel;host.center();host.makeKeyAndOrderFront(nil);window=host;NSApp.activate(ignoringOtherApps:true)
             wheel.updateAccessibility()
             try await settle(recorder:nil)
             observedPreferences=try await verifyPreferences(scene:scene,appearance:appearance,language:language,defaults:defaults,view:wheel)
@@ -154,7 +165,7 @@ struct UIAuditError:LocalizedError { let message:String;init(_ message:String){s
         let host:NSWindow
         if isEditor {host=ToolPanel(contentRect:NSRect(origin:.zero,size:size),styleMask:[.borderless,.closable],backing:.buffered,defer:false)}
         else {host=NSWindow(contentRect:NSRect(origin:.zero,size:size),styleMask:[.titled,.closable],backing:.buffered,defer:false)}
-        host.isReleasedWhenClosed=false;host.title="Nashi UI Audit · "+scene;host.contentView=NSHostingView(rootView:root);host.center();window=host;host.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
+        host.isReleasedWhenClosed=false;host.title="Kage UI Audit · "+scene;host.contentView=NSHostingView(rootView:root);host.center();window=host;host.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
         try await settle(recorder:isEditor ? recorder:nil)
         guard let content=host.contentView else{throw UIAuditError("Scene has no content view")}
         observedPreferences=try await verifyPreferences(scene:scene,appearance:appearance,language:language,defaults:defaults,view:content)

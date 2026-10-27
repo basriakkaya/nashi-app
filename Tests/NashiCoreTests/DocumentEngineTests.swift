@@ -281,7 +281,7 @@ final class DocumentEngineTests: XCTestCase {
         let tsv = try convert(ods, "tsv")
         let text = try DocumentText.read(tsv)
         XCTAssertTrue(text.contains("Şişli, İstanbul"))
-        XCTAssertTrue(text.contains("12.5"))
+        XCTAssertTrue(text.contains("12.5"), "Unexpected TSV: \(text.debugDescription)")
         XCTAssertTrue(text.contains("\t"))
         let restoredXLSX = try convert(tsv, "xlsx")
         let restoredCSV = try convert(restoredXLSX, "csv")

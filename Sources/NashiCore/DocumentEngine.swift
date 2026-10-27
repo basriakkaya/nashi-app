@@ -143,8 +143,10 @@ public enum DocumentEngine {
         defer { try? fm.removeItem(at: profile) }
         let profileUser = profile.appendingPathComponent("user", isDirectory: true)
         try fm.createDirectory(at: profileUser, withIntermediateDirectories: true)
+        // Keep machine-readable CSV/TSV numbers consistent with the explicit
+        // en-US import filter, regardless of the macOS user-interface locale.
         let config = """
-        <?xml version="1.0" encoding="UTF-8"?><oor:items xmlns:oor="http://openoffice.org/2001/registry"><item oor:path="/org.openoffice.Office.Common/Security/Scripting"><prop oor:name="MacroSecurityLevel" oor:op="fuse"><value>3</value></prop></item><item oor:path="/org.openoffice.Office.Common/Load"><prop oor:name="UpdateLinkMode" oor:op="fuse"><value>0</value></prop></item></oor:items>
+        <?xml version="1.0" encoding="UTF-8"?><oor:items xmlns:oor="http://openoffice.org/2001/registry"><item oor:path="/org.openoffice.Office.Common/Security/Scripting"><prop oor:name="MacroSecurityLevel" oor:op="fuse"><value>3</value></prop></item><item oor:path="/org.openoffice.Office.Common/Load"><prop oor:name="UpdateLinkMode" oor:op="fuse"><value>0</value></prop></item><item oor:path="/org.openoffice.Setup/L10N"><prop oor:name="ooLocale" oor:op="fuse"><value>en-US</value></prop><prop oor:name="ooSetupSystemLocale" oor:op="fuse"><value>en-US</value></prop></item></oor:items>
         """
         try config.write(to: profileUser.appendingPathComponent("registrymodifications.xcu"), atomically: true, encoding: .utf8)
         let executable = try Dependencies.executable("soffice")
@@ -168,12 +170,13 @@ public enum DocumentEngine {
         // LibreOffice imports linked HTML resources. Denying IP networking at
         // the process boundary keeps conversions local. Unix-domain IPC remains
         // available because the upstream macOS build requires it to start.
+        // LibreOffice embeds Python. Its cache must never modify signed bundle resources.
         let result: ProcessResult
         let sandbox = URL(fileURLWithPath: "/usr/bin/sandbox-exec")
         if fm.isExecutableFile(atPath: sandbox.path) {
-            result = try ProcessRunner.run(sandbox, ["-p", "(version 1)(allow default)(deny network* (remote ip))", executable.path] + arguments, token: token, environment: ["SAL_DISABLE_OPENCL": "1", "LC_ALL": "en_US.UTF-8"])
+            result = try ProcessRunner.run(sandbox, ["-p", "(version 1)(allow default)(deny network* (remote ip))", executable.path] + arguments, token: token, environment: ["SAL_DISABLE_OPENCL": "1", "LC_ALL": "en_US.UTF-8", "PYTHONDONTWRITEBYTECODE": "1"])
         } else {
-            result = try ProcessRunner.run(executable, arguments, token: token, environment: ["SAL_DISABLE_OPENCL": "1", "LC_ALL": "en_US.UTF-8"])
+            result = try ProcessRunner.run(executable, arguments, token: token, environment: ["SAL_DISABLE_OPENCL": "1", "LC_ALL": "en_US.UTF-8", "PYTHONDONTWRITEBYTECODE": "1"])
         }
         let output = directory.appendingPathComponent(input.deletingPathExtension().lastPathComponent).appendingPathExtension(format)
         guard fm.fileExists(atPath: output.path) else {
@@ -198,7 +201,7 @@ public enum DocumentEngine {
         case "xlsx": return "xlsx:Calc MS Excel 2007 XML"
         case "xls": return "xls:MS Excel 97"
         case "ods": return "ods:calc8"
-        case "csv", "tsv": return "\(format):Text - txt - csv (StarCalc):\(format == "csv" ? 44 : 9),34,76,1,,0,false,true,false,false,false,0"
+        case "csv", "tsv": return "\(format):Text - txt - csv (StarCalc):\(format == "csv" ? 44 : 9),34,76,1,,1033,false,true,false,false,false,0"
         case "pptx": return "pptx:Impress MS PowerPoint 2007 XML"
         case "ppt": return "ppt:MS PowerPoint 97"
         case "pdf":

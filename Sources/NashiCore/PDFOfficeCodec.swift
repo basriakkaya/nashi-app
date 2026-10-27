@@ -21,7 +21,7 @@ enum PDFOfficeCodec {
         let scale = CGFloat(max(36, min(600, dpi))) / 72
         let width = max(1, Int(ceil(bounds.width * scale))), height = max(1, Int(ceil(bounds.height * scale)))
         guard width <= 32000, height <= 32000, let cgPage = page.pageRef,
-              let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+              let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
             throw NashiError.failed("The PDF page is too large to render at this resolution.")
         }
         context.setFillColor(CGColor(gray: 1, alpha: 1)); context.fill(CGRect(x: 0, y: 0, width: width, height: height))
@@ -102,12 +102,9 @@ enum PDFOfficeCodec {
             guard bounds.width.isFinite, bounds.height.isFinite, bounds.width > 0, bounds.height > 0 else {
                 throw NashiError.invalidInput("PDF page \(index + 1) has an invalid size.")
             }
-            let size = NSSize(width: max(1, bounds.width * 2), height: max(1, bounds.height * 2))
-            let image = page.thumbnail(of: size, for: .mediaBox)
-            var rect = CGRect(origin: .zero, size: size)
-            guard let cg = image.cgImage(forProposedRect: &rect, context: nil, hints: nil), let png = NSBitmapImageRep(cgImage: cg).representation(using: .png, properties: [:]) else {
-                throw NashiError.failed("PDF page \(index + 1) could not be rendered.")
-            }
+            // Render directly in an explicit color space; PDFKit thumbnails can
+            // carry display-dependent color transforms into exported slides.
+            let png = try rasterPNG(page, token: token)
             // A presentation has one shared canvas. Match the first displayed
             // PDF page, then fit and center later pages without distorting them.
             let scale = min(canvas.width / bounds.width, canvas.height / bounds.height)

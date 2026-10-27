@@ -11,8 +11,13 @@ import ApplicationServices
 @main
 enum NashiApplication {
     @MainActor static func main() {
-        if CommandLine.arguments.count>1,["convert","tool","inspect","catalog","dependencies"].contains(CommandLine.arguments[1]) { exit(NashiCommandLine.run()) }
+        if CommandLine.arguments.count>1,["convert","tool","inspect","security","catalog","dependencies"].contains(CommandLine.arguments[1]) { exit(NashiCommandLine.run()) }
         let app=NSApplication.shared
+        if let index=CommandLine.arguments.firstIndex(of:"--kage-smoke"),CommandLine.arguments.count>index+1 {
+            let runner=KageSmoke(output:URL(fileURLWithPath:CommandLine.arguments[index+1],isDirectory:true))
+            app.delegate=runner;app.setActivationPolicy(.accessory)
+            withExtendedLifetime(runner) { app.run() };return
+        }
         if CommandLine.arguments.contains("--ui-audit") {
             do {
                 let runner=UIAudit(options:try UIAuditOptions(arguments:CommandLine.arguments))
@@ -64,7 +69,7 @@ enum NashiApplication {
         }
         let delegate=AppDelegate()
         app.delegate=delegate
-        app.setActivationPolicy(.accessory)
+        app.setActivationPolicy(.regular)
         withExtendedLifetime(delegate) { app.run() }
     }
 }
@@ -89,8 +94,8 @@ enum NashiApplication {
         let w=NSWindow(contentRect:NSRect(x:220,y:200,width:620,height:420),styleMask:[.titled,.closable,.resizable],backing:.buffered,defer:false)
         let key=CommandLine.arguments.firstIndex(of:"--minimum-window-width")
         let minimum=key.flatMap{$0+1<CommandLine.arguments.count ? Double(CommandLine.arguments[$0+1]):nil} ?? 160
-        w.title="Nashi Window Layout Fixture";w.minSize=NSSize(width:min(1200,max(160,minimum)),height:120);w.isReleasedWhenClosed=false
-        let label=NSTextField(labelWithString:"Nashi window arrangement test fixture")
+        w.title="Kage Window Layout Fixture";w.minSize=NSSize(width:min(1200,max(160,minimum)),height:120);w.isReleasedWhenClosed=false
+        let label=NSTextField(labelWithString:"Kage window arrangement test fixture")
         label.font=NSFont.systemFont(ofSize:20,weight:.medium);label.frame=NSRect(x:26,y:300,width:560,height:40)
         w.contentView?.addSubview(label);w.makeKeyAndOrderFront(nil);window=w
     }
@@ -121,11 +126,12 @@ enum NashiApplication {
     var windowManagement:WindowManagementController!
 
     func applicationDidFinishLaunching(_ notification:Notification) {
+        UserDefaults.standard.register(defaults:["enabled":true,"reveal":true,"sound":true,"convertKey":"shift","toolsKey":"command","actionsKey":"control","wheelScale":1.0,"windowManagementEnabled":false,"appAppearance":"dark","appLanguage":"tr"])
         NashiAppearance.apply()
-        UserDefaults.standard.register(defaults:["enabled":true,"reveal":true,"sound":true,"convertKey":"shift","toolsKey":"command","actionsKey":"control","wheelScale":1.0,"windowManagementEnabled":true])
         let mainMenu=NSMenu();let appMenu=NSMenu()
         appMenu.addItem(withTitle:"Home",action:#selector(showHome),keyEquivalent:"1")
         appMenu.addItem(withTitle:"Library",action:#selector(showLibrary),keyEquivalent:"2")
+        appMenu.addItem(withTitle:"Security Center",action:#selector(showSecurity),keyEquivalent:"3")
         appMenu.addItem(withTitle:"Find in Library…",action:#selector(findInLibrary),keyEquivalent:"f")
         appMenu.addItem(withTitle:"Choose Files…",action:#selector(chooseFiles),keyEquivalent:"o")
         appMenu.addItem(withTitle:"Download Link…",action:#selector(showDownloadLink),keyEquivalent:"")
@@ -133,29 +139,34 @@ enum NashiApplication {
         appMenu.addItem(withTitle:"Welcome…",action:#selector(showWelcome),keyEquivalent:"")
         appMenu.addItem(withTitle:"Check for Updates…",action:#selector(checkForUpdates),keyEquivalent:"u")
         appMenu.addItem(withTitle:"Update Connection…",action:#selector(showUpdateConnection),keyEquivalent:"")
-        appMenu.addItem(.separator());appMenu.addItem(withTitle:"Quit Nashi",action:#selector(quit),keyEquivalent:"q")
+        appMenu.addItem(.separator());appMenu.addItem(withTitle:"Quit Kage",action:#selector(quit),keyEquivalent:"q")
         for item in appMenu.items { item.target=self;if item.action == #selector(showDownloadLink) { item.keyEquivalent="d";item.keyEquivalentModifierMask=[.control,.shift] } };let appItem=NSMenuItem();appItem.submenu=appMenu;mainMenu.addItem(appItem)
         let edit=NSMenu(title:"Edit")
         for (title,key,selector) in [("Undo","z","undo:"),("Redo","Z","redo:"),("Cut","x","cut:"),("Copy","c","copy:"),("Paste","v","paste:"),("Select All","a","selectAll:")] { edit.addItem(withTitle:title,action:Selector(selector),keyEquivalent:key) }
         let editItem=NSMenuItem(title:"Edit",action:nil,keyEquivalent:"");editItem.submenu=edit;mainMenu.addItem(editItem);NSApp.mainMenu=mainMenu
         let windowMenu=NSMenu(title:"Window");windowMenu.addItem(withTitle:"Close Window",action:#selector(NSWindow.performClose(_:)),keyEquivalent:"w");let windowItem=NSMenuItem(title:"Window",action:nil,keyEquivalent:"");windowItem.submenu=windowMenu;mainMenu.addItem(windowItem);NSApp.windowsMenu=windowMenu
         let menu=NSMenu()
-        menu.addItem(withTitle:"Nashi",action:#selector(showHome),keyEquivalent:"")
+        menu.addItem(withTitle:"Kage",action:#selector(showHome),keyEquivalent:"")
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle:"Choose Files…",action:#selector(chooseFiles),keyEquivalent:"o")
         menu.addItem(withTitle:"Download Link…",action:#selector(showDownloadLink),keyEquivalent:"")
-        menu.addItem(withTitle:"Enable Nashi",action:#selector(toggleEnabled),keyEquivalent:"").state = UserDefaults.standard.bool(forKey:"enabled") ? .on : .off
+        menu.addItem(withTitle:"Enable Kage",action:#selector(toggleEnabled),keyEquivalent:"").state = UserDefaults.standard.bool(forKey:"enabled") ? .on : .off
         menu.addItem(withTitle:"Settings…",action:#selector(showSettings),keyEquivalent:",")
         menu.addItem(withTitle:"Welcome…",action:#selector(showWelcome),keyEquivalent:"")
         menu.addItem(withTitle:"Recent Conversions",action:#selector(showHome),keyEquivalent:"")
         menu.addItem(withTitle:"Check for Updates…",action:#selector(checkForUpdates),keyEquivalent:"")
         menu.addItem(withTitle:"Update Connection…",action:#selector(showUpdateConnection),keyEquivalent:"")
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(withTitle:"Quit Nashi",action:#selector(quit),keyEquivalent:"q")
+        menu.addItem(withTitle:"Quit Kage",action:#selector(quit),keyEquivalent:"q")
         for item in menu.items { item.target=self }
         statusItem=NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
         statusItem.button?.image=NashiArtwork.menuIcon()
         statusItem.menu=menu;menu.delegate=self
+        if updater.updatesDisabled {
+            for updateMenu in [appMenu,menu] {
+                for item in updateMenu.items where item.action == #selector(checkForUpdates) || item.action == #selector(showUpdateConnection) { updateMenu.removeItem(item) }
+            }
+        }
         appMenu.delegate=self
         L10n.localize(mainMenu);L10n.localize(menu)
         NotificationCenter.default.publisher(for:.nashiLanguageChanged).sink { _ in L10n.localize(NSApp.mainMenu);L10n.localize(menu);L10n.updateWindowTitles() }.store(in:&updateObservations)
@@ -197,22 +208,23 @@ enum NashiApplication {
         state.onSuccess = { [weak self] notice in self?.progressToast.dismiss();self?.successToast.show(notice) }
         let loginLaunch=NSAppleEventManager.shared().currentAppleEvent?.paramDescriptor(forKeyword:keyAELaunchedAsLogInItem)?.booleanValue ?? false
         if !loginLaunch,!CommandLine.arguments.contains("--background") {
-            if UserDefaults.standard.bool(forKey:"hasCompletedWelcome") { showHome() } else { showWelcome() }
+            if Bundle.main.object(forInfoDictionaryKey:"KageLocalBuild") as? Bool == true || UserDefaults.standard.bool(forKey:"hasCompletedWelcome") { showHome() } else { showWelcome() }
         }
         UserDefaults.standard.set(true,forKey:"hasOpened")
         if let index=CommandLine.arguments.firstIndex(of:"--open"), index+1<CommandLine.arguments.count {
             state.inputs=CommandLine.arguments[(index+1)...].map{URL(fileURLWithPath:$0)};showHome()
         }
     }
+    @objc func showSecurity() { showHome();state.libraryVisible=false;state.securityVisible=true }
     @objc func showLibrary() {showHome();state.libraryVisible=true;state.selectedHistoryID=state.history.first?.id}
     @objc func findInLibrary() {showLibrary();state.libraryFocusRequest+=1}
     @objc func showHome() {
-        state.libraryVisible=false
+        state.libraryVisible=false;state.securityVisible=false
         progressToast.dismiss()
-        if home == nil { home=makeWindow(title:"Nashi",size:NSSize(width:820,height:780),view:HomeView(state:state,updater:updater)) }
-        home?.contentMinSize=NSSize(width:700,height:580)
+        if home == nil { home=makeWindow(title:"Kage",size:NSSize(width:1120,height:860),view:HomeView(state:state,updater:updater)) }
+        home?.contentMinSize=NSSize(width:960,height:680)
         home?.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
-        if !toolSetupOffered, Bundle.main.object(forInfoDictionaryKey:"NashiExternalTools") as? Bool == true, !ExternalToolSetup.status.ready {
+        if Bundle.main.object(forInfoDictionaryKey:"KageLocalBuild") as? Bool != true, !toolSetupOffered, Bundle.main.object(forInfoDictionaryKey:"NashiExternalTools") as? Bool == true, !ExternalToolSetup.status.ready {
             showToolSetup()
         }
     }
@@ -221,7 +233,7 @@ enum NashiApplication {
         if toolSetupWindow == nil {
             let model=ToolSetupModel()
             model.onWorkingChange={ [weak self] working in guard let self else{return};self.toolSetupWorking=working;self.toolSetupWindow?.standardWindowButton(.closeButton)?.isEnabled = !working;self.updater.setBusy(working || self.state.working) }
-            toolSetupWindow=makeWindow(title:"Set up Nashi tools",size:NSSize(width:646,height:690),view:ToolSetupView(model:model,onDone:{ [weak self] in
+            toolSetupWindow=makeWindow(title:"Set up Kage tools",size:NSSize(width:646,height:690),view:ToolSetupView(model:model,onDone:{ [weak self] in
                 guard ExternalToolSetup.status.ready else{return}
                 UserDefaults.standard.set(true,forKey:"hasCompletedWelcome");self?.toolSetupWindow?.close();self?.showHome()
             }))
@@ -268,7 +280,7 @@ enum NashiApplication {
         presentSettings(updates:false)
     }
     private func presentSettings(updates:Bool) {
-        if settings == nil { settings=makeWindow(title:"Nashi Settings",size:NSSize(width:860,height:700),view:SettingsView(updater:updater,showingUpdates:updates)) }
+        if settings == nil { settings=makeWindow(title:"Kage Settings",size:NSSize(width:860,height:700),view:SettingsView(updater:updater,showingUpdates:updates)) }
         settings?.contentMinSize=NSSize(width:790,height:590)
         settings?.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
         if updates { NotificationCenter.default.post(name:.showUpdateSettings,object:nil) }
@@ -276,7 +288,7 @@ enum NashiApplication {
     @objc func showWelcome() {
         if welcome == nil {
             let panel=ToolPanel(contentRect:NSRect(x:0,y:0,width:760,height:520),styleMask:[.borderless,.closable],backing:.buffered,defer:false)
-            panel.title="Welcome to Nashi";panel.isReleasedWhenClosed=false;panel.isOpaque=false;panel.backgroundColor = .clear;panel.hasShadow=true;panel.hidesOnDeactivate=false
+            panel.title="Welcome to Kage";panel.isReleasedWhenClosed=false;panel.isOpaque=false;panel.backgroundColor = .clear;panel.hasShadow=true;panel.hidesOnDeactivate=false
             let view=WelcomeView(onDone:{ [weak self] in self?.finishWelcome() },onClose:{ [weak self] in self?.finishWelcome() },onMinimize:{ [weak self] in self?.welcome?.orderOut(nil) })
             panel.contentView=NSHostingView(rootView:view.nashiLanguage());panel.center();welcome=panel
         }
@@ -294,7 +306,7 @@ enum NashiApplication {
         else { showUpdateConnection() }
     }
     @objc func showUpdateConnection() {
-        if updateConnection == nil { updateConnection=makeWindow(title:"Nashi Update Connection",size:NSSize(width:620,height:720),view:UpdateConnectionView(updater:updater)) }
+        if updateConnection == nil { updateConnection=makeWindow(title:"Kage Update Connection",size:NSSize(width:620,height:720),view:UpdateConnectionView(updater:updater)) }
         updateConnection?.contentMinSize=NSSize(width:560,height:570)
         updateConnection?.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
     }

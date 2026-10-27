@@ -42,21 +42,21 @@ import Darwin
     private func require(_ value:Bool,_ reason:String)throws { if !value { throw Failure(description:reason) } }
     private func pause(_ milliseconds:UInt64)async throws { try await Task.sleep(nanoseconds:milliseconds*1_000_000);try require(!interrupted,"Native test was interrupted; input was released.") }
     private func run()async throws {
-        try require(AXIsProcessTrusted()&&CGPreflightPostEventAccess(),"Nashi needs its own \(WindowManagementController.permissionName) permission; no input was posted.")
+        try require(AXIsProcessTrusted()&&CGPreflightPostEventAccess(),"Kage needs its own \(WindowManagementController.permissionName) permission; no input was posted.")
         try require(NSEvent.pressedMouseButtons==0&&CGEventSource.flagsState(.combinedSessionState).intersection([.maskCommand,.maskShift,.maskControl,.maskAlternate]).isEmpty,"Release the mouse and modifiers before testing.")
         originalPointer=CGEvent(source:nil)?.location
         let own=Bundle.main.executableURL?.standardizedFileURL
-        guard let manager=NSRunningApplication(processIdentifier:managerPID) else { throw Failure(description:"The selected Nashi manager is not running.") }
-        try require(managerPID != ProcessInfo.processInfo.processIdentifier&&manager.executableURL?.standardizedFileURL==own,"The manager must be the same installed Nashi executable.")
+        guard let manager=NSRunningApplication(processIdentifier:managerPID) else { throw Failure(description:"The selected Kage manager is not running.") }
+        try require(managerPID != ProcessInfo.processInfo.processIdentifier&&manager.executableURL?.standardizedFileURL==own,"The manager must be the same installed Kage executable.")
         try FileManager.default.createDirectory(at:output,withIntermediateDirectories:true)
         let configuration=NSWorkspace.OpenConfiguration();configuration.arguments=["--window-management-fixture","--minimum-window-width",String(Double(minimumWidth))];configuration.createsNewApplicationInstance=true;configuration.activates=false
         fixture=try await NSWorkspace.shared.openApplication(at:Bundle.main.bundleURL,configuration:configuration)
         guard let fixture else { throw Failure(description:"Fixture did not launch.") }
-        try require(fixture.executableURL?.standardizedFileURL==own,"Fixture executable differs from installed Nashi.")
+        try require(fixture.executableURL?.standardizedFileURL==own,"Fixture executable differs from installed Kage.")
         let app=AXUIElementCreateApplication(fixture.processIdentifier);AXUIElementSetMessagingTimeout(app,0.2)
         for _ in 0..<40 {
             let windows=WindowManagementController.attribute(app,kAXWindowsAttribute) as? [AXUIElement] ?? []
-            fixtureWindow=windows.first { WindowManagementController.attribute($0,kAXTitleAttribute) as? String == "Nashi Window Layout Fixture" }
+            fixtureWindow=windows.first { WindowManagementController.attribute($0,kAXTitleAttribute) as? String == "Kage Window Layout Fixture" }
             if fixtureWindow != nil { break };try await pause(100)
         }
         guard let window=fixtureWindow,let screen=NSScreen.screens.first else { throw Failure(description:"The exact disposable fixture window is unavailable.") }
@@ -87,7 +87,7 @@ import Darwin
         keyboard(key,down:true,flags:flags);heldKey=key
         mouse(.leftMouseDragged,CGPoint(x:start.x+40,y:start.y+28),flags:flags)
         var wheel:CGRect?
-        for _ in 0..<40 { wheel=windowBounds(pid:managerPID,title:"Nashi Window Management");if wheel != nil { break };try await pause(50) }
+        for _ in 0..<40 { wheel=windowBounds(pid:managerPID,title:"Kage Window Management");if wheel != nil { break };try await pause(50) }
         guard let wheel else { throw Failure(description:"The live window wheel did not appear.") }
         let geometry=WheelGeometry(bounds:.zero,count:WindowPlacement.allCases.count)
         let angle=(-Double(geometry.startAngle)+Double(index)*360/Double(geometry.count))*Double.pi/180
@@ -105,7 +105,7 @@ import Darwin
         if cancel { keyboard(53,down:true,flags:flags);try await pause(80);keyboard(53,down:false,flags:flags);try await pause(100) }
         // Releasing the modifier must keep the choice available until mouse-up.
         keyboard(key,down:false);heldKey=nil;try await pause(100)
-        if !cancel { try require(windowBounds(pid:managerPID,title:"Nashi Window Management") != nil,"Releasing the modifier dismissed the wheel.") }
+        if !cancel { try require(windowBounds(pid:managerPID,title:"Kage Window Management") != nil,"Releasing the modifier dismissed the wheel.") }
         mouse(.leftMouseUp,selected);mouseDown=false
         let expected=cancel ? initial:placement.frame(in:work,scale:screen.backingScaleFactor,minimumSize:CGSize(width:minimumWidth,height:120))
         let axOrigin=WindowManagementController.accessibilityPoint(CGPoint(x:expected.minX,y:expected.maxY))
@@ -119,7 +119,7 @@ import Darwin
         guard let actual else { throw Failure(description:"Fixture disappeared after drag.") }
         try require(abs(actual.width-expected.width)<3&&abs(actual.height-expected.height)<3 &&
                     (cancel || abs(actual.minX-axOrigin.x)<3&&abs(actual.minY-axOrigin.y)<3),"\(cancel ? "Escape":placement.rawValue) did not apply the expected live window bounds: \(actual)")
-        try require(windowBounds(pid:managerPID,title:"Nashi Window Management")==nil,"Window wheel remained open after mouse-up.")
+        try require(windowBounds(pid:managerPID,title:"Kage Window Management")==nil,"Window wheel remained open after mouse-up.")
         log.append(["placement":cancel ? "escape":placement.rawValue,"modifier":command ? "command":"shift","gesture":resize ? "resizeBorder":"titleBar","actual":[actual.minX,actual.minY,actual.width,actual.height],"passed":true])
         try await pause(120)
     }
@@ -147,7 +147,7 @@ import Darwin
         return CGRect(dictionaryRepresentation:bounds as CFDictionary)
     }
     private func captureWheel(pid:pid_t)throws {
-        guard let number=windowInfo(pid:pid,title:"Nashi Window Management")?[kCGWindowNumber as String] as? NSNumber,
+        guard let number=windowInfo(pid:pid,title:"Kage Window Management")?[kCGWindowNumber as String] as? NSNumber,
               let image=CGWindowListCreateImage(.null,.optionIncludingWindow,number.uint32Value,[.boundsIgnoreFraming,.bestResolution]) else { return }
         let bitmap=NSBitmapImageRep(cgImage:image)
         if let png=bitmap.representation(using:.png,properties:[:]) { try png.write(to:output.appendingPathComponent("mac-window-management.png")) }
@@ -155,7 +155,7 @@ import Darwin
     private func cleanup() { releaseInput();fixture?.terminate();fixture=nil;if let originalPointer { mouse(.mouseMoved,originalPointer) };signals.forEach{$0.cancel()} }
     private func save(passed:Bool,error:String?)throws {
         try FileManager.default.createDirectory(at:output,withIntermediateDirectories:true)
-        let report:[String:Any]=["passed":passed,"error":error as Any? ?? NSNull(),"checks":log,"scope":"Installed Nashi, disposable native fixture, all \(WindowPlacement.allCases.count) physical Shift/Command layout drags, modifier release and Escape. No other windows are moved."]
+        let report:[String:Any]=["passed":passed,"error":error as Any? ?? NSNull(),"checks":log,"scope":"Installed Kage, disposable native fixture, all \(WindowPlacement.allCases.count) physical Shift/Command layout drags, modifier release and Escape. No other windows are moved."]
         try JSONSerialization.data(withJSONObject:report,options:[.prettyPrinted,.sortedKeys]).write(to:output.appendingPathComponent("mac-window-management.json"))
     }
 }

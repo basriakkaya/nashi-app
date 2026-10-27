@@ -16,13 +16,13 @@ import NashiCore
             do {try await run()}catch{failure=String(describing:error)}
             let result:[String:Any]=["passed":failure == nil,"checks":checks,"error":failure as Any? ?? NSNull(),"scope":"Own-window production timeline, semantic start/end slider actions, bounded values and direct native pointer-handler regression. No global input, user files, clipboard, TCC or external assistive-technology client."]
             if let data=try? JSONSerialization.data(withJSONObject:result,options:[.prettyPrinted,.sortedKeys]) {try? data.write(to:output.appendingPathComponent("mac-range-accessibility.json"))}
-            if failure == nil && keepOpen {window?.title="Nashi Range Accessibility QA — Passed";return}
+            if failure == nil && keepOpen {window?.title="Kage Range Accessibility QA — Passed";return}
             window?.close();exit(failure == nil ? 0:1)
         }
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication)->Bool {true}
     private func check(_ valid:Bool,_ label:String)throws {
-        guard valid else{throw NSError(domain:"Nashi Range Accessibility QA",code:1,userInfo:[NSLocalizedDescriptionKey:label])}
+        guard valid else{throw NSError(domain:"Kage Range Accessibility QA",code:1,userInfo:[NSLocalizedDescriptionKey:label])}
         checks.append(label)
     }
     private func near(_ a:Double,_ b:Double)->Bool {abs(a-b)<0.000_001}
@@ -39,7 +39,7 @@ import NashiCore
         if let data=rep.representation(using:.png,properties:[:]) {try data.write(to:output.appendingPathComponent("mac-range-accessibility.png"))}
     }
     private func pointer(_ lane:MediaRangeInteraction.LaneView,from:Double,to:Double)throws {
-        guard let window=lane.window else{throw NSError(domain:"Nashi Range Accessibility QA",code:2)}
+        guard let window=lane.window else{throw NSError(domain:"Kage Range Accessibility QA",code:2)}
         func event(_ type:NSEvent.EventType,_ x:Double)->NSEvent {
             NSEvent.mouseEvent(with:type,location:lane.convert(NSPoint(x:x,y:lane.bounds.midY),to:nil),modifierFlags:[],timestamp:ProcessInfo.processInfo.systemUptime,windowNumber:window.windowNumber,context:nil,eventNumber:0,clickCount:1,pressure:1)!
         }
@@ -51,10 +51,10 @@ import NashiCore
         try FileManager.default.createDirectory(at:output,withIntermediateDirectories:true)
         let fixture=RangeFixture()
         let w=NSWindow(contentRect:NSRect(x:120,y:100,width:448,height:180),styleMask:[.titled,.closable],backing:.buffered,defer:false)
-        w.title="Nashi Range Accessibility QA";w.isReleasedWhenClosed=false
+        w.title="Kage Range Accessibility QA";w.isReleasedWhenClosed=false
         w.contentView=NSHostingView(rootView:RangeFixtureView(fixture:fixture).preferredColorScheme(.dark))
         window=w;w.makeKeyAndOrderFront(nil);await pause();await pause()
-        guard let content=w.contentView,let lane=findLane(content) else{throw NSError(domain:"Nashi Range Accessibility QA",code:3,userInfo:[NSLocalizedDescriptionKey:"Production timeline did not mount"])}
+        guard let content=w.contentView,let lane=findLane(content) else{throw NSError(domain:"Kage Range Accessibility QA",code:3,userInfo:[NSLocalizedDescriptionKey:"Production timeline did not mount"])}
         func endpoints()->[RangeEndpointAccessibilityElement] {lane.accessibilityChildren() as? [RangeEndpointAccessibilityElement] ?? []}
         let children=endpoints()
         try check(lane.accessibilityIdentifier()=="media.range.timeline" && lane.accessibilityRole() == .group,"Production timeline exposes a stable semantic group")

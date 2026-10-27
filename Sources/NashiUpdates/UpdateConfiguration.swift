@@ -20,6 +20,7 @@ public struct UpdateConfiguration: Equatable {
     }
 
     public init(info: [String: Any], repository: GitHubRepository? = nil) throws {
+        guard info["KageLocalBuild"] as? Bool != true else { throw ConfigurationError.notConfigured }
         guard let key = info["SUPublicEDKey"] as? String, !key.isEmpty else {
             throw ConfigurationError.notConfigured
         }

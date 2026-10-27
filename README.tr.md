@@ -1,42 +1,58 @@
-# Nashi
+# Kage · macOS
 
-[English](README.md) · [Türkçe özellikler ve kısayollar](https://orkunisitmak.github.io/nashi-app/tr/) · [Son sürüm](https://github.com/orkunisitmak/nashi-app/releases/latest)
+[English](README.md) · [Türkçe](README.tr.md)
 
-Nashi, [Tangerine](https://tangerineformac.com/) uygulamasının sürükle ve çark etkileşiminden ilham alan bağımsız, açık kaynaklı bir dosya dönüştürme/düzenleme uygulamasıdır. Web’den medya indirme, QR okuma, geliştirilmiş crop/annotate araçları, klavyeyle medya düzenleme, canlı ilerleme ve imzalı otomatik güncelleme ekler. Tangerine veya LEAP STUDIO ile bağlantılı değildir; referans uygulamanın binary dosyaları veya görselleri dağıtılmaz.
+Siyah/kırmızı tasarımlı, terminal esintili, yerel güvenlik incelemesi eklenmiş kişisel dosya çalışma alanı. Nashi’nin açık kaynak motoru üzerine bağımsız olarak geliştirilmiştir.
 
-[Etkileşimli web demosunu dene](https://orkunisitmak.github.io/nashi-app/tr/#playground): örnek dosyaları sürükle, wheel ve kısayolları kullan, 27 aracı keşfet. Desteklenen görsel/PDF/ses çıktıları gerçektir; masaüstüne özel işlemler önizleme olarak işaretlenir.
+![Kage çalışma alanı](docs/assets/kage/workspace-dark-tr.png)
 
-## Nashi’yi iş başında gör
+## Özellikler
 
-[![Nashi gerçek ekran kaydı: Finder sürükleme, wheel, dönüştürme, crop ve video trim](docs/assets/showcase/nashi-demo.gif?v=50e9219b2083)](https://orkunisitmak.github.io/nashi-app/tr/#demo)
+- Yeni macOS çalışma alanı, işlem geçmişi, sürükle–çark araçları ve dosya önizlemesi.
+- 45 girdi biçimi ve 27 dosya aracı: görsel/PDF/medya/belge dönüştürme, kırpma, açıklama, metadata, sansür ve arşiv işlemleri.
+- **Güvenlik Merkezi:** SHA-256 parmak izi, beklenen özetle karşılaştırma, dosya başlığı–uzantı farkları, çalıştırılabilir içerik ve izinler, görünmeyen ad karakterleri, karantina gözlemi ve tam dosya yolu içermeyen JSON raporu.
+- İnceleme dosyaları yüklemez veya çalıştırmaz. Sembolik bağlantıları, aygıtları ve klasörleri reddeder; iptal edilebilir; dosya işlem sırasında değişirse sonuç verilmez. Antivirüs taraması veya güvenli dosya hükmü değildir.
+- Ayrı uygulama kimliği (`com.basriakkaya.kage`), tercihler ve içe aktarılan dosyalar. Nashi’nin güncelleme kanalı ve kayıtlı bağlantıları Kage sürümünde kullanılmaz.
+- Türkçe/İngilizce ve açık/koyu tema. İlk açılış tercihi Türkçe ve koyudur.
 
-**[95 saniyelik ekran kaydını izle](https://orkunisitmak.github.io/nashi-app/tr/#demo)** · [MP4 aç / indir](https://orkunisitmak.github.io/nashi-app/assets/showcase/nashi-demo.mp4?v=50e9219b2083)
+Nashi’ye ayrı gönderilen sansür ve arşiv sınırı düzeltmeleri Kage’ye dahil edilmiştir. Ürün **Apple Silicon / macOS 13+** içindir. Depodaki Windows kaynakları geçmiş referanstır; Kage Windows sürümü sunulmaz.
 
-macOS 0.7.3 ile çekilmiş gerçek kullanım ekran kaydı: Finder’dan sürükleme, wheel’den JPG’ye dönüştürme, görsel kırpma ve In/Out tutamaçlarıyla video trim. Beklemeler ve uzun önizlemeler kısaltıldı; kalan hareketler normal hızda oynar. Video oynatıcıda Türkçe ve İngilizce altyazı bulunur.
+## Derle ve kullan
 
-| macOS · Ana ekran | macOS · Görsel kırp |
-| :---: | :---: |
-| [![Nashi Mac ana ekranı](docs/assets/showcase/mac-home.png)](docs/assets/showcase/mac-home.png) | [![Kare seçim ve oran kontrolleriyle Nashi kırpma editörü](docs/assets/showcase/mac-crop.png)](docs/assets/showcase/mac-crop.png) |
-| **macOS · Video kırp** | **Windows · 0.7.5** |
-| [![In/Out tutamaçları ve seçilen aralıkla Nashi video trim editörü](docs/assets/showcase/mac-trim.png)](docs/assets/showcase/mac-trim.png) | [![Koyu temada yerel Windows 0.7.5 ana ekranı](docs/assets/showcase/windows-home-preview.png)](docs/assets/showcase/windows-home-preview.png) |
+Swift 6 içeren Xcode ve Python 3.11+ gerekir. Yardımcı araçlar sistem geneline kurulmaz, bu çalışma kopyasında hazırlanır.
 
-Windows görüntüsü, [PR #1](https://github.com/orkunisitmak/nashi-app/pull/1) ile doğrulanan ve yayınlanan 0.7.5 kodunun yerel UI testinden alınmıştır. Demo dosyaları yalnızca Nashi görsellerini içerir; kişisel dosya veya hesap bilgisi gösterilmez.
+```sh
+python3 scripts/setup-kage-tools.py
+zsh scripts/build-kage.sh release
+open build/Kage.app
+```
 
-## İndir ve kullan
+Uygulama, doğrulanan medya/Office araçlarını, ExifTool’u, yerel belge kütüphanelerini ve lisanslarını paketler. Varsayılan çıktı `build/Kage.app`; farklı hedef için `KAGE_APP_OUTPUT` kullanılır.
 
-- **[macOS ZIP · Apple Silicon, macOS 13+](https://github.com/orkunisitmak/nashi-app/releases/latest/download/Nashi-macOS-arm64.zip):** ZIP’i aç, Nashi.app’i Uygulamalar klasörüne taşı ve aç. macOS kataloğu 27 araç, 45 girdi formatı ve 275 dönüşüm yolu içerir.
-- **[Windows x64 ZIP · yerel önizleme](https://github.com/orkunisitmak/nashi-app/releases/latest/download/Nashi-Windows-x64.zip):** ZIP’in tamamını kendine ait, yazılabilir bir klasöre çıkar ve Nashi.exe’yi aç. Ayrıca .NET kurmak gerekmez. Güncelleme için klasörün bütünlüğünü koru. [Windows özellikleri ve farkları](windows/README.md).
+Bu sürüm **yerel ad-hoc imzalıdır**, Apple tarafından notarize edilmiş genel yayın değildir. Kage’ye ait imzalı yayın kanalı kurulana kadar otomatik güncellemeler kapalıdır. İşletim sistemi korumaları kapatılmaz. Bu yerel kopyada oturum açılışında başlatma kullanılamayabilir. Diğer uygulamaların pencerelerini düzenleme özelliği ayrı macOS izni ister ve başlangıçta kapalıdır.
 
-İlk açılışta **Kurulumu tamamla → Eksik araçları indir** akışı Medya ve Office araçlarını sırayla kurar. Bilgisayarında bulunan araçlar yeniden indirilmez; iptal veya hata sonrasında yalnızca eksik gruplarla devam edilir. **Araçlar hazır** durumu iki grup da kullanılabilir olduğunda gösterilir. İndirmeler doğrudan upstream’den gelir; hash’leri kurulumdan önce doğrulanır. Temel yerel görsel/PDF işlemleri hemen çalışır. [Sürümler, hash’ler ve lisanslar](docs/dependencies.md).
+## Akış
 
-İlk public build’lerde Apple notarization / Windows Authenticode yayıncı imzası bulunmuyor. İşletim sistemi ilk açılışta onay isteyebilir. Nashi sistem güvenlik ayarlarını kapatmaz. Resmi yayınlarda SHA-256 dosyası vardır; her CI çıktısı resmi imzalı güncelleme sayılmaz.
+Dosya seç veya bırak; ardından dönüşüm ya da araç seç. **⌘1** çalışma alanını, **⌘2** kitaplığı, **⌘3** Güvenlik Merkezi’ni açar. **⌘O** dosya seçer. Güvenlik Merkezi’nin ayrı seçicisi bir işlemde en çok 32 normal dosya alır.
 
-## Kısayollar
+Parmak izini güvenilir bir kaynaktan aldığın değerle karşılaştır. Eşleşme yalnızca sağladığın değerle aynı olduğunu gösterir; yayıncı kimliği veya zararlı yazılım güvenliği garantisi vermez. Metadata ve sansür işlemleri yeni kopya üretir, kaynakları korur.
 
-macOS’ta Finder’da sürüklerken **Shift** dönüşüm, **Command** araçlar, **Control** dosya işlemleri çarkını açar. **Control–Shift–D** kopyalanmış public linki indirir. Sürükleme tuşları özelleştirilebilir. Windows’ta **Ctrl+O** dosya seçer; **Ctrl+Space** seçili dosyaların araç çarkını açar.
+Komut satırından inceleme:
 
-Desteklenen medya editörlerinde **Space** oynat/duraklat, **sağ/sol ok** bir saniye ilerle/geri git, **I/O** aralık başlangıcı/sonu. Crop’ta sürükleyerek seç, **Shift** ile oranı kilitle, **Enter** ile kaydet. [Tam kısayol rehberi](https://orkunisitmak.github.io/nashi-app/tr/#shortcuts).
+```sh
+build/Kage.app/Contents/MacOS/Kage security /path/to/file
+```
 
-Dönüştürme ve düzenleme yerelde çalışır. Web indirmeleri seçtiğin siteye bağlanır. Analytics, bulut hesabı veya tarayıcı çerezi aktarma yok. Public güncellemeler GitHub hesabı/token istemez. macOS feed ve arşiv imzasını, Windows arşiv imzasını ve sürümünü doğrular. İşler tamamlanmadan veya iptal edilmeden güncelleme için uygulama kapanmaz. Windows eski uygulama klasörünü geri alınabilir yedek olarak tutar.
+## Doğrulama
 
-Kaynak kod [MIT](LICENSE) lisanslıdır; üçüncü taraf bileşenlerin kendi lisansları geçerlidir. [macOS build adımları](README.md#build) · [Windows build adımları](windows/README.md).
+```sh
+swift test
+python3 scripts/test-native-ui.py --app build/Kage.app/Contents/MacOS/Kage --output work/native-ui
+build/Kage.app/Contents/MacOS/Kage --kage-smoke work/packaged-smoke
+```
+
+Arayüz ve paket kontrolleri için yeni, boş çıktı klasörleri seç. Kontroller sentetik dosyalar kullanır. Arayüz denetimi 48 görünüm/tema/dil birleşimini, paket kontrolü içindeki araçlarla gerçek dönüşümleri kapsar; başka macOS sürümleri veya mimariler için kabul kanıtı değildir.
+
+## Kaynak ve lisans
+
+Kage, Basri Akkaya tarafından; Orkun Işıtmak ve katkıda bulunanların [Nashi](https://github.com/orkunisitmak/nashi-app) projesi temel alınarak bağımsız biçimde özelleştirilmiştir. Özgün [MIT lisansı](LICENSE), telif hakkı, atıflar ve üçüncü taraf lisansları korunur. [Kage bildirimi](Resources/KAGE-NOTICE.txt), [üçüncü taraf bildirimleri](Resources/THIRD-PARTY-NOTICES.txt) ve `Resources/licenses/` dizinine bak. Kage resmî Nashi yayını değildir; Tangerine/LEAP STUDIO ile bağlantılı değildir.

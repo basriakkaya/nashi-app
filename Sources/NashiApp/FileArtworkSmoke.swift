@@ -8,7 +8,7 @@ import os
         let probe = OSAllocatedUnfairLock(initialState: Probe())
         var checks: [String] = []
         func check(_ success: Bool, _ label: String) throws {
-            guard success else { throw NSError(domain: "Nashi File Artwork QA", code: 1, userInfo: [NSLocalizedDescriptionKey: label]) }
+            guard success else { throw NSError(domain: "Kage File Artwork QA", code: 1, userInfo: [NSLocalizedDescriptionKey: label]) }
             checks.append(label)
         }
         let slow: FileArtworkCache.Loader = { _ in
