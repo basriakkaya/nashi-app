@@ -3,6 +3,12 @@ import Foundation
 public enum NashiCommandLine {
     public static func run(arguments args:[String] = CommandLine.arguments) -> Int32 {
 do {
+    if args.count>=3,args[1]=="security" {
+        let paths=Array(args.dropFirst(2))
+        guard paths.count<=32 else { throw NashiError.invalidInput("Choose between 1 and 32 regular files.") }
+        let reports=try paths.map { try FileSecurityInspection.inspect(URL(fileURLWithPath:$0)) }
+        print(String(decoding:try FileSecurityInspection.export(reports),as:UTF8.self));return 0
+    }
     if args.count==2,args[1]=="catalog" {
         let data=try JSONSerialization.data(withJSONObject:["conversionMatrix":FeatureCatalog.conversionMatrix,"tools":ToolKind.allCases.map(\.rawValue)],options:[.prettyPrinted,.sortedKeys]);print(String(decoding:data,as:UTF8.self));return 0
     }
@@ -20,7 +26,7 @@ do {
     if args.count==2,args[1]=="dependencies" {
         var result:[String:String]=[:];for name in ["ffmpeg","ffprobe","soffice","exiftool"] { result[name]=try Dependencies.executable(name).path };print(String(decoding:try JSONSerialization.data(withJSONObject:result,options:.sortedKeys),as:UTF8.self));return 0
     }
-    guard args.count>=4 else { print("Usage: nashi-cli convert FORMAT FILE... [--options JSON]\n       nashi-cli tool TOOL_ID FILE... [--options JSON]\n       nashi-cli catalog");return 64 }
+    guard args.count>=4 else { print("Usage: Kage convert FORMAT FILE... [--options JSON]\n       Kage tool TOOL_ID FILE... [--options JSON]\n       Kage security FILE...\n       Kage catalog");return 64 }
     var options=OperationOptions(), paths=Array(args.dropFirst(3))
     let jsonOutput=paths.contains("--json");paths.removeAll{$0=="--json"}
     if let i=paths.firstIndex(of:"--options"),i+1<paths.count {

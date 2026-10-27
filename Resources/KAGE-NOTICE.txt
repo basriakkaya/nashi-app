@@ -1,0 +1,8 @@
+Kage for macOS — personal file workspace
+Copyright (c) 2026 Basri Akkaya. Kage-specific changes are available under the MIT License.
+
+Based on Nashi, copyright (c) 2026 Orkun Işıtmak and Nashi contributors.
+The complete original MIT license is included as Nashi-MIT.txt.
+Third-party components retain their own licenses in this directory.
+Kage is an independent customization and is not an official Nashi release.
+This local build uses ad-hoc code signing and has no automatic update channel.

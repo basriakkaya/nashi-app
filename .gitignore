@@ -16,3 +16,8 @@ Configuration/CredentialBroker.json
 *.mobileprovision
 **/bin/
 **/obj/
+
+work/
+
+__pycache__/
+*.pyc

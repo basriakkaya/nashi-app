@@ -50,7 +50,7 @@ struct SettingsView:View {
                 case .formats:formats
                 case .compatibility:CompatibilitySettingsView { format in selectedFormat=format;section = .formats }
                 case .folders:FolderSettingsView()
-                case .updates:UpdateSettingsView(updater:updater)
+                case .updates:if updater.updatesDisabled { KageLocalUpdateView() } else { UpdateSettingsView(updater:updater) }
                 case .about:AboutSettingsView()
                 }
             }
@@ -92,7 +92,7 @@ struct SettingsView:View {
                     HStack { Text("Wheel finish");Spacer();Picker("Wheel finish",selection:$fanTheme) { Text("Glass").tag("glass");Text("Solid").tag("metallic") }.labelsHidden().pickerStyle(.segmented).frame(width:230) }
                     Divider()
                     Toggle("Launch at login",isOn:Binding(get:{launch},set:updateLaunch)).disabled(launchUnavailable)
-                    if launchNeedsApproval { HStack { Text("Allow Nashi in macOS Login Items.").font(.caption).foregroundStyle(.secondary);Spacer();Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() } } }
+                    if launchNeedsApproval { HStack { Text("Allow Kage in macOS Login Items.").font(.caption).foregroundStyle(.secondary);Spacer();Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() } } }
                     if launchUnavailable { Text("Launch at login is unavailable for this copy.").font(.caption).foregroundStyle(.secondary) }
                     if let launchError { Text(launchError).font(.caption).foregroundStyle(.secondary) }
                     HStack {
@@ -103,7 +103,7 @@ struct SettingsView:View {
                     Text("Sound follows your Mac’s volume. Haptics need a compatible Force Touch trackpad.")
                         .font(.caption).foregroundStyle(.secondary).frame(maxWidth:.infinity,alignment:.leading)
                     Toggle("Subtle animations",isOn:Binding(get:{!reduceAnimations},set:{reduceAnimations = !$0}))
-                    if systemReducedMotion { Text("macOS Reduce Motion is on. Nashi keeps motion off.").font(.caption).foregroundStyle(.secondary) }
+                    if systemReducedMotion { Text("macOS Reduce Motion is on. Kage keeps motion off.").font(.caption).foregroundStyle(.secondary) }
                 }.padding(10)
             }
             GroupBox("Drag shortcuts") {
@@ -129,8 +129,8 @@ struct SettingsView:View {
                             Button("Open permission settings…") { WindowManagementController.requestAccess() }
                         }
                         if Bundle.main.bundleIdentifier == "local.tangerine.replica" {
-                            Text("Upgraded from Tangerine? macOS may still show the previous name. Choose this Nashi app when adding it to \(WindowManagementController.permissionName).").font(.caption).foregroundStyle(.secondary)
-                            Button("Show Nashi in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL]) }
+                            Text("Upgraded from Tangerine? macOS may still show the previous name. Choose this Kage app when adding it to \(WindowManagementController.permissionName).").font(.caption).foregroundStyle(.secondary)
+                            Button("Show Kage in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL]) }
                         }
                     } else { Label("\(WindowManagementController.permissionName) is enabled",systemImage:"checkmark.circle").font(.caption).foregroundStyle(.secondary) }
                 }.padding(10)
@@ -143,7 +143,7 @@ struct SettingsView:View {
                 }.padding(10)
             }
             DisclosureGroup("Additional options") { VStack(alignment:.leading,spacing:13) {
-                Toggle("Enable Nashi",isOn:$enabled)
+                Toggle("Enable Kage",isOn:$enabled)
                 Toggle("Reveal finished files in Finder",isOn:$reveal)
                 HStack { Text("Wheel size");Slider(value:$wheelScale,in:0.85...1.4).frame(width:230);Text("\(Int(wheelScale*100))%").monospacedDigit().frame(width:40) }
             }.padding(.top,12) }
@@ -251,7 +251,7 @@ private struct FolderSettingsView:View {
     var body:some View {
         VStack(alignment:.leading,spacing:18) {
             Text("Folders").font(.title2.weight(.semibold))
-            Text("Nashi saves results beside the originals. Allow a folder once to include every folder inside it.").foregroundStyle(.secondary)
+            Text("Kage saves results beside the originals. Allow a folder once to include every folder inside it.").foregroundStyle(.secondary)
             if folders.isEmpty { VStack(spacing:9) { Image(systemName:"folder.badge.questionmark").font(.system(size:40)).foregroundStyle(.secondary);Text("No folders allowed yet.").foregroundStyle(.secondary) }.frame(maxWidth:.infinity,maxHeight:.infinity) }
             else { List { ForEach(folders) { grant in HStack {
                 Image(systemName:"folder").foregroundStyle(Color.nashi)
@@ -265,7 +265,7 @@ private struct FolderSettingsView:View {
     private func refresh() { folders=FolderAccessPreferences.grants() }
     private func choose(home:Bool) {
         let panel=NSOpenPanel();panel.title="Allow Folder Access";panel.prompt="Allow Access";panel.canChooseFiles=false;panel.canChooseDirectories=true;panel.allowsMultipleSelection=true
-        panel.message="Choose a folder where Nashi may save results. Every folder inside it is included."
+        panel.message="Choose a folder where Kage may save results. Every folder inside it is included."
         if home { panel.directoryURL=FileManager.default.homeDirectoryForCurrentUser }
         if panel.runModal() == .OK { do { try FolderAccessPreferences.add(panel.urls);error=nil;refresh() } catch { self.error=error.localizedDescription } }
     }
@@ -292,15 +292,32 @@ private struct CompatibilitySettingsView:View {
 private struct AboutSettingsView:View {
     private var version:String { Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "Development" }
     var body:some View {
-        VStack(spacing:17) {
+        VStack(spacing:18) {
             Spacer()
-            NashiMark(size:96,happy:true)
-            Text("Nashi").font(.system(size:32,weight:.bold,design:.rounded))
-            Text("Your files, a little sweeter.").font(.headline)
-            Text("Version \(version)").foregroundStyle(.secondary)
-            Text("A little less file fuss. A little more flow.\nConvert, edit, and organize — right on your Mac.").multilineTextAlignment(.center).foregroundStyle(.secondary)
-            Text("Built for your files. Made for your Mac.").font(.caption).foregroundStyle(.secondary)
+            NashiMark(size:96)
+            Text("KAGE").font(.system(size:34,weight:.bold,design:.monospaced)).tracking(6)
+            LText("Your files. Your control.").font(.headline)
+            Text("Version \(version)").font(.system(size:12,design:.monospaced)).foregroundStyle(.secondary)
+            LText("A personal macOS workspace for file conversion, editing and local security inspection.").multilineTextAlignment(.center).foregroundStyle(.secondary)
+            Divider().frame(width:180)
+            LText("Independently customized from Nashi. Original copyright and third-party licenses are preserved.").font(.caption).multilineTextAlignment(.center).foregroundStyle(.secondary)
+            HStack {
+                Link("Nashi source · MIT",destination:URL(string:"https://github.com/orkunisitmak/nashi-app")!)
+                Button("Open licenses") { if let url=Bundle.main.resourceURL?.appendingPathComponent("licenses") { NSWorkspace.shared.open(url) } }.buttonStyle(NashiButtonStyle(.quiet,compact:true))
+            }
             Spacer()
-        }.padding(30).frame(maxWidth:.infinity)
+        }.padding(34).frame(maxWidth:.infinity)
+    }
+}
+
+private struct KageLocalUpdateView:View {
+    var body:some View {
+        VStack(alignment:.leading,spacing:22) {
+            NashiPageHeading(eyebrow:"RELEASE CHANNEL",title:"Your own build.",subtitle:"Kage has an independent application identity and local settings.")
+            Label("Automatic updates are disabled",systemImage:"lock.shield").font(.headline).foregroundStyle(NashiPalette.forest)
+            LText("This personal build does not connect to Nashi releases or load its saved update credentials. Install a newer Kage build manually when one is available.").font(.callout).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
+            LText("A future update channel must use a Kage-owned signing key and verified releases.").font(.system(size:12,design:.monospaced)).foregroundStyle(.secondary)
+            Spacer()
+        }.padding(30).frame(maxWidth:.infinity,alignment:.leading)
     }
 }

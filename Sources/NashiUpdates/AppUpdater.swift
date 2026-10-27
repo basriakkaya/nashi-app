@@ -27,7 +27,8 @@ import Sparkle
     private let credentials: UpdateCredentialStore
     private let defaults: UserDefaults
     private let bundleInfo:[String:Any]
-    public var officialRepository:GitHubRepository? { PublicUpdateChannel(info:bundleInfo)?.repository }
+    public var updatesDisabled: Bool { bundleInfo["KageLocalBuild"] as? Bool == true }
+    public var officialRepository:GitHubRepository? { updatesDisabled ? nil : PublicUpdateChannel(info:bundleInfo)?.repository }
     private let validateGitHubAccess: (GitHubRepository, String?) async throws -> Void
     private var bridge: GitHubUpdateBridge?
     private var scheduledCheck: Task<Void, Never>?
@@ -42,7 +43,7 @@ import Sparkle
     }
     public var isConfigured: Bool { controller != nil && configurationError == nil }
     public var canChangeConnection: Bool {
-        !sessionInProgress && controller?.updater.sessionInProgress != true && !isConnecting && !isBusy && !waitingForCurrentTask
+        !updatesDisabled && !sessionInProgress && controller?.updater.sessionInProgress != true && !isConnecting && !isBusy && !waitingForCurrentTask
     }
 
     public override convenience init() {
@@ -71,6 +72,7 @@ import Sparkle
     }
 
     private func restoreConnection() {
+        guard !updatesDisabled else { requiresToken = false; return }
         PublicUpdateChannel(info:bundleInfo)?.migrate(defaults)
         if let slug = defaults.string(forKey: Preference.repository) {
             if let saved=try? GitHubRepository(slug) {
@@ -84,6 +86,7 @@ import Sparkle
     }
 
     public func start() {
+        guard !updatesDisabled else { return }
         guard controller == nil else { return }
         do {
             configuration = try UpdateConfiguration(info: bundleInfo, repository: repository)
@@ -126,6 +129,7 @@ import Sparkle
     }
 
     public func checkForUpdates() {
+        guard !updatesDisabled else { return }
         guard let controller, canCheckForUpdates, controller.updater.canCheckForUpdates, !isBusy, !isConnecting else { return }
         lastError = nil
         NSApp.activate(ignoringOtherApps: true)

@@ -6,7 +6,7 @@ import CryptoKit
 /// then publishes a complete tool directory. No credential store is involved.
 public enum ExternalToolSetup {
     public static var root: URL {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Nashi/Tools", isDirectory:true)
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Kage/Tools", isDirectory:true)
     }
     public static func executable(_ name:String)->URL? {
         let relative:String

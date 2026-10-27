@@ -19,11 +19,11 @@ import NashiCore
         }
     }
     private func check(_ valid:Bool,_ label:String)throws {
-        if !valid {throw NSError(domain:"Nashi Setup QA",code:1,userInfo:[NSLocalizedDescriptionKey:label])};checks.append(label)
+        if !valid {throw NSError(domain:"Kage Setup QA",code:1,userInfo:[NSLocalizedDescriptionKey:label])};checks.append(label)
     }
     private func pause()async {try? await Task.sleep(nanoseconds:160_000_000)}
     private func press(_ identifier:String)throws {
-        guard let window else {throw NSError(domain:"Nashi Setup QA",code:2)}
+        guard let window else {throw NSError(domain:"Kage Setup QA",code:2)}
         let cancel=identifier=="SetupCancel"
         let event=NSEvent.keyEvent(with:.keyDown,location:.zero,modifierFlags:[],timestamp:ProcessInfo.processInfo.systemUptime,windowNumber:window.windowNumber,context:nil,characters:cancel ? "\u{1b}":"\r",charactersIgnoringModifiers:cancel ? "\u{1b}":"\r",isARepeat:false,keyCode:cancel ? 53:36)!
         // Dispatch through this fixture window's native default/cancel shortcut.
@@ -44,7 +44,7 @@ import NashiCore
     }
     private func run()async throws {
         try FileManager.default.createDirectory(at:output,withIntermediateDirectories:true)
-        let suite="Nashi.SetupQA."+UUID().uuidString,defaults=UserDefaults(suiteName:suite)!
+        let suite="Kage.SetupQA."+UUID().uuidString,defaults=UserDefaults(suiteName:suite)!
         defer{defaults.removePersistentDomain(forName:suite)}
         defaults.set("en",forKey:"appLanguage")
         var status=ToolSetupStatus(mediaReady:false,officeReady:false),mediaCalls=0,officeCalls=0,finish=0,officeMode=0
@@ -58,7 +58,7 @@ import NashiCore
             }
         })
         let w=NSWindow(contentRect:NSRect(x:100,y:80,width:646,height:690),styleMask:[.titled,.closable,.resizable],backing:.buffered,defer:false)
-        w.title="Nashi First Run QA";w.isReleasedWhenClosed=false
+        w.title="Kage First Run QA";w.isReleasedWhenClosed=false
         w.contentView=NSHostingView(rootView:ToolSetupView(model:model,onDone:{finish+=1}).nashiLanguage().defaultAppStorage(defaults))
         window=w;w.makeKeyAndOrderFront(nil);await pause();await pause()
         try check(!model.status.ready&&model.status.missing == [.media,.office],"Clean first-run profile requires both tool groups")

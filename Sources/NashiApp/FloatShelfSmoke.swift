@@ -30,12 +30,12 @@ import AppKit
         }
         let extra=output.appendingPathComponent("Extra drop.txt");try? "Additional Float fixture".write(to:extra,atomically:true,encoding:.utf8)
         let view=FloatDragFixture(frame:NSRect(x:0,y:0,width:310,height:260),file:extra,output:output,onShow:{ [weak shelf] in shelf?.showWindow(nil) })
-        let drop=NSWindow(contentRect:view.frame,styleMask:[.titled,.closable],backing:.buffered,defer:false);drop.title="Nashi Float Drag Test";drop.contentView=view;drop.isReleasedWhenClosed=false;drop.level = .floating;drop.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary]
+        let drop=NSWindow(contentRect:view.frame,styleMask:[.titled,.closable],backing:.buffered,defer:false);drop.title="Kage Float Drag Test";drop.contentView=view;drop.isReleasedWhenClosed=false;drop.level = .floating;drop.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary]
         drop.setFrameOrigin(NSPoint(x:window.frame.maxX+60,y:window.frame.minY-100));drop.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true);dragWindow=drop
         let metadata:[String:Any]=["shelfWindowID":window.windowNumber,"dropWindowID":drop.windowNumber,"shelfFrame":NSStringFromRect(window.frame),"dropFrame":NSStringFromRect(drop.frame)]
         if let data=try? JSONSerialization.data(withJSONObject:metadata,options:[.prettyPrinted,.sortedKeys]) {try? data.write(to:output.appendingPathComponent("fixture-windows.json"))}
     }
-    private func check(_ valid:Bool,_ name:String)throws { if !valid { throw NSError(domain:"Nashi Float QA",code:1,userInfo:[NSLocalizedDescriptionKey:name]) };checks.append(name) }
+    private func check(_ valid:Bool,_ name:String)throws { if !valid { throw NSError(domain:"Kage Float QA",code:1,userInfo:[NSLocalizedDescriptionKey:name]) };checks.append(name) }
     private func pause()async {try? await Task.sleep(nanoseconds:350_000_000)}
     private func children(_ view:NSView)->[NSView] { [view]+view.subviews.flatMap(children) }
     private func key(_ code:UInt16,_ characters:String,flags:NSEvent.ModifierFlags=[])async {
@@ -44,7 +44,7 @@ import AppKit
         window.sendEvent(event);await pause()
     }
     private func capture(_ name:String)throws {
-        guard let view=shelf?.window?.contentView,let rep=view.bitmapImageRepForCachingDisplay(in:view.bounds) else {throw NSError(domain:"Nashi Float QA",code:2)}
+        guard let view=shelf?.window?.contentView,let rep=view.bitmapImageRepForCachingDisplay(in:view.bounds) else {throw NSError(domain:"Kage Float QA",code:2)}
         view.cacheDisplay(in:view.bounds,to:rep);try rep.representation(using:.png,properties:[:])!.write(to:output.appendingPathComponent(name))
     }
     private func run()async throws {
@@ -53,7 +53,7 @@ import AppKit
         let text=folder.appendingPathComponent("Notes with a longer name.txt");try "Float original – öğeler".write(to:text,atomically:true,encoding:.utf8)
         var images:[URL]=[]
         for (index,color) in [NSColor.systemGreen,NSColor.systemOrange,NSColor.systemPurple].enumerated() {
-            let image=NSImage(size:NSSize(width:160,height:120));image.lockFocus();color.setFill();NSBezierPath(roundedRect:NSRect(x:0,y:0,width:160,height:120),xRadius:18,yRadius:18).fill();("Nashi \(index+1)" as NSString).draw(at:NSPoint(x:22,y:48),withAttributes:[.font:NSFont.systemFont(ofSize:25,weight:.bold),.foregroundColor:NSColor.white]);image.unlockFocus()
+            let image=NSImage(size:NSSize(width:160,height:120));image.lockFocus();color.setFill();NSBezierPath(roundedRect:NSRect(x:0,y:0,width:160,height:120),xRadius:18,yRadius:18).fill();("Kage \(index+1)" as NSString).draw(at:NSPoint(x:22,y:48),withAttributes:[.font:NSFont.systemFont(ofSize:25,weight:.bold),.foregroundColor:NSColor.white]);image.unlockFocus()
             let url=folder.appendingPathComponent("Photo \(index+1).png");try NSBitmapImageRep(data:image.tiffRepresentation!)!.representation(using:.png,properties:[:])!.write(to:url);images.append(url)
         }
         fixtures=[text]+images

@@ -125,7 +125,7 @@ enum WindowPlacementGlyph {
         do {
             try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
             try data.write(to:directory.appendingPathComponent("mac-window-wheel-view.png"),options:.atomic)
-        } catch { fputs("Nashi window QA view capture failed.\n",stderr) }
+        } catch { fputs("Kage window QA view capture failed.\n",stderr) }
     }
 
     private func capture(at point:NSPoint)->Target? {
@@ -159,7 +159,7 @@ enum WindowPlacementGlyph {
         if wheelPanel==nil {
             let size=CGFloat(320*UserDefaults.standard.double(forKey:"wheelScale"))
             let panel=NSPanel(contentRect:NSRect(x:0,y:0,width:size,height:size),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
-            panel.title="Nashi Window Management";panel.isOpaque=false;panel.backgroundColor = .clear
+            panel.title="Kage Window Management";panel.isOpaque=false;panel.backgroundColor = .clear
             panel.level = .statusBar;panel.ignoresMouseEvents=true;panel.hasShadow=false
             panel.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary];panel.hidesOnDeactivate=false
             let effect=NSVisualEffectView(frame:NSRect(x:0,y:0,width:size,height:size))
@@ -190,7 +190,7 @@ enum WindowPlacementGlyph {
         guard let placement else { preview?.orderOut(nil);lastPlacement=nil;return }
         if preview==nil {
             let p=NSPanel(contentRect:.zero,styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
-            p.title="Nashi Placement Preview";p.level = .floating;p.ignoresMouseEvents=true
+            p.title="Kage Placement Preview";p.level = .floating;p.ignoresMouseEvents=true
             p.backgroundColor = .clear;p.isOpaque=false;p.hasShadow=false;p.hidesOnDeactivate=false
             p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary]
             p.contentView=WindowPlacementPreviewView();preview=p

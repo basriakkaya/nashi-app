@@ -1,61 +1,58 @@
-<p align="center"><img src="Resources/Brand/NashiIcon.png" width="128" alt="Nashi"></p>
-<h1 align="center">Nashi</h1>
-<p align="center">Your files, a little sweeter. · Dosyaların için tatlı bir kolaylık.</p>
+# Kage for macOS
 
-[English guide](https://orkunisitmak.github.io/nashi-app/) · [Türkçe](https://orkunisitmak.github.io/nashi-app/tr/) · [Latest release](https://github.com/orkunisitmak/nashi-app/releases/latest) · [Security](SECURITY.md)
+[English](README.md) · [Türkçe](README.tr.md)
 
-Nashi is an independent, open-source file conversion and editing app inspired by [Tangerine](https://tangerineformac.com/)'s drag-and-wheel interaction. It adds public web-media downloads, QR reading, refined crop/annotation workflows, keyboard media editing, live progress and signed automatic updates. Nashi is not affiliated with Tangerine or LEAP STUDIO and includes no proprietary reference-app binaries or artwork.
+A personal file workspace with a black/red interface, terminal-inspired identity and local security inspection. Built independently on the open-source Nashi engine.
 
-Try the [interactive browser playground](https://orkunisitmak.github.io/nashi-app/#playground): drag sample files, use the wheel and shortcuts, and explore all 27 tools. Supported image/PDF/audio exports are real; desktop-only operations are labeled previews.
+![Kage workspace](docs/assets/kage/workspace-dark-tr.png)
 
-## See Nashi in action
+## What works
 
-[![Nashi real screen recording: Finder drag, conversion wheel, crop and video trim](docs/assets/showcase/nashi-demo.gif?v=50e9219b2083)](https://orkunisitmak.github.io/nashi-app/#demo)
+- Native macOS workspace, Library, drag-and-wheel tools and file previews.
+- 45 input formats and 27 original file tools: image/PDF/media/document conversion, cropping, annotations, metadata controls, redaction, archive extraction and more.
+- **Security Center:** streaming SHA-256, checksum comparison, file-header/extension mismatch observations, executable content/permissions, hidden filename characters, quarantine observations and JSON reports without full paths.
+- Security inspection reads files without uploading or executing them. It refuses symlinks, devices and folders, supports cancellation and rejects results if the file changes during inspection. It is not an antivirus or a guarantee that a file is safe.
+- Independent bundle identity (`com.basriakkaya.kage`), settings and imports. Original update channels and saved update connections are disabled in Kage builds.
+- Turkish/English, light/dark; Turkish and dark are the initial preferences.
 
-**[Watch the 95-second screen recording](https://orkunisitmak.github.io/nashi-app/#demo)** · **[Türkçe demo](https://orkunisitmak.github.io/nashi-app/tr/#demo)** · [MP4](https://orkunisitmak.github.io/nashi-app/assets/showcase/nashi-demo.mp4?v=50e9219b2083)
+Kage incorporates the separately submitted Nashi redaction and archive-boundary fixes. This fork targets **Apple Silicon / macOS 13+**. Windows sources remain upstream reference material and are not a Kage product.
 
-A real macOS 0.7.3 screen recording: drag files in Finder, use the wheel to convert to JPG, crop an image and trim a video with In/Out handles. Pauses and longer previews are shortened; retained actions play at normal speed. English and Turkish captions are available in the video player.
+## Build a usable app
 
-| macOS · Home | macOS · Crop image |
-| :---: | :---: |
-| [![Nashi Mac Home with file selection and quick actions](docs/assets/showcase/mac-home.png)](docs/assets/showcase/mac-home.png) | [![Nashi Mac crop editor with a square selection and aspect ratio controls](docs/assets/showcase/mac-crop.png)](docs/assets/showcase/mac-crop.png) |
-| **macOS · Video trim** | **Windows · 0.7.5** |
-| [![Nashi video trim editor with In and Out handles and a selected range](docs/assets/showcase/mac-trim.png)](docs/assets/showcase/mac-trim.png) | [![Nashi native Windows 0.7.5 Home in the dark theme](docs/assets/showcase/windows-home-preview.png)](docs/assets/showcase/windows-home-preview.png) |
-
-Windows screenshot: native UI test capture from the released 0.7.5 code, verified in [PR #1](https://github.com/orkunisitmak/nashi-app/pull/1). Demo files contain Nashi's own artwork; no personal files or account details are shown.
-
-## Download and use
-
-- **[macOS ZIP · Apple Silicon, macOS 13+](https://github.com/orkunisitmak/nashi-app/releases/latest/download/Nashi-macOS-arm64.zip):** extract, move Nashi.app to your Applications folder and open it. The full macOS catalog has 27 tools, 45 input formats and 275 conversion routes.
-- **[Windows x64 ZIP](https://github.com/orkunisitmak/nashi-app/releases/latest/download/Nashi-Windows-x64.zip):** extract the entire archive into its own writable folder, then open Nashi.exe. No separate .NET install is required. Keep the folder together so portable updates can replace the app safely. [Windows features and differences](windows/README.md).
-
-First launch guides you through **Finish setup → Download missing tools** for hash-verified downloads directly from upstream. Media and Office tools install in sequence; existing tools are kept, and cancelled or failed setup can be retried. **Tools ready** appears only when both groups are available. Core native image/PDF features work immediately. [Exact versions, hashes and licenses](docs/dependencies.md).
-
-These first public builds do not have Apple notarization or Windows Authenticode publisher signing. Your OS may require first-launch approval; consult [Apple's guidance](https://support.apple.com/en-us/102445). Nashi does not disable system security settings. Official release assets include SHA-256 checksums. A CI artifact alone is not an official signed update.
-
-## Shortcuts
-
-On macOS, hold **Shift** while dragging in Finder for conversion, **Command** for tools or **Control** for file actions. **Control–Shift–D** downloads a copied public link. Drag modifiers are customizable. On Windows, use **Ctrl+O** to choose files, **Ctrl+V** to import copied files/text/images, and **Ctrl+Space** for the tools wheel. **Ctrl+2** opens Library; **Ctrl+F** searches it. Normal paste inside text fields is preserved. Home and Library share the Mac color palette, rounded cards and gold actions, with System/Light/Dark appearance.
-
-Supported media editors use **Space** for play/pause, **Left/Right** to seek one second and **I/O** to mark a range. Crop uses drag, **Shift** for aspect lock and **Enter** to save. The [English](https://orkunisitmak.github.io/nashi-app/#shortcuts) and [Turkish](https://orkunisitmak.github.io/nashi-app/tr/#shortcuts) pages contain the complete macOS shortcut sheet; the [Windows guide](windows/README.md) lists its available controls.
-
-## Build
-
-For macOS: Apple Silicon, macOS 13+ and Xcode/Swift 6.
+Xcode with Swift 6 and Python 3.11+ are required. Runtimes are prepared inside the checkout, not installed system-wide.
 
 ```sh
-scripts/setup-exiftool.sh
-swift build --product Nashi
-swift test --filter NashiUpdatesTests
-scripts/build-app.sh release
+python3 scripts/setup-kage-tools.py
+zsh scripts/build-kage.sh release
+open build/Kage.app
 ```
 
-The public app is written to `build/Nashi.app`. Large runtimes are installed through its setup screen. Source builds use an ad-hoc signature unless you provide your own ignored signing profile. Signing private keys are never distributed. [Windows build instructions](windows/README.md).
+The build bundles the verified media/Office tools, ExifTool, local document libraries and their licenses. Default output: `build/Kage.app`. Override with `KAGE_APP_OUTPUT`.
 
-## Privacy and updates
+This is a **locally signed, ad-hoc build**. It is not an Apple-notarized public release. Automatic updates are intentionally disabled until a Kage-owned, signed release channel exists. The app does not disable operating-system protections. Login launch may be unavailable for this local build; moving other applications' windows requires a separate macOS permission and is off by default.
 
-Conversion/editing run locally. Web downloads contact the selected media site. No analytics, cloud account or browser-cookie import is built in. Official releases update through this public repository without a GitHub account or token. macOS verifies the signed feed and archive; Windows verifies the archive signature and version before replacement. Active operations finish or cancel before the app exits for an update. Portable Windows updates retain the previous folder as a recoverable backup.
+## Use
 
-## License and acknowledgments
+Choose or drop files, then pick a conversion or tool. **⌘1** opens the workspace, **⌘2** the Library, **⌘3** Security Center. **⌘O** chooses files. Security Center has its own file picker and accepts up to 32 regular files per inspection.
 
-Nashi's original source is [MIT](LICENSE). Vendored libraries and external tools retain their own licenses; see [macOS notices](Resources/THIRD-PARTY-NOTICES.txt), [Windows notices](windows/THIRD-PARTY-NOTICES.txt) and [runtime setup](docs/dependencies.md). No purchase flow or reference-app account is required.
+Compare a fingerprint against a value obtained from a trusted source. Matching hashes establish equality with that supplied value; they do not establish publisher identity or malware safety. Metadata/redaction actions produce copies and retain originals.
+
+CLI inspection is also available:
+
+```sh
+build/Kage.app/Contents/MacOS/Kage security /path/to/file
+```
+
+## Verify
+
+```sh
+swift test
+python3 scripts/test-native-ui.py --app build/Kage.app/Contents/MacOS/Kage --output work/native-ui
+build/Kage.app/Contents/MacOS/Kage --kage-smoke work/packaged-smoke
+```
+
+Use new, empty output directories for explicit UI/runtime audits. They use synthetic files. The native audit covers 48 scene/theme/language combinations; the packaged smoke runs real conversions using bundled tools. Those checks do not establish another macOS version or architecture's acceptance.
+
+## Origin and licenses
+
+Kage is an independent customization by Basri Akkaya, based on [Nashi](https://github.com/orkunisitmak/nashi-app) by Orkun Işıtmak and contributors. The original [MIT license](LICENSE), copyright, attribution and third-party licenses are preserved. See [Kage notice](Resources/KAGE-NOTICE.txt), [third-party notices](Resources/THIRD-PARTY-NOTICES.txt) and `Resources/licenses/`. Kage is not an official Nashi release or associated with Tangerine/LEAP STUDIO.
